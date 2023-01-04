@@ -23,7 +23,13 @@ import {
   BORROW_FEE,
   COLLATERAL_FACTOR
 } from 'helpers/marketHelpers';
-const { formatPercent: fp, formatSol: fs, formatRoundDown: frd } = formatNumber;
+
+const {
+  formatPercent: fp,
+  formatSol: fs,
+  formatRoundDown: frd,
+  formatShortName: fsn
+} = formatNumber;
 
 interface NFT {
   name: string;
@@ -193,7 +199,7 @@ const BorrowForm = (props: BorrowProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(nftPrice)}
+              value={fsn(nftPrice)}
               valueSize="big"
               title={
                 <span className={hAlign}>
@@ -217,7 +223,7 @@ const BorrowForm = (props: BorrowProps) => {
           </div>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(Number(frd(userAllowance)))}
+              value={fsn(Number(frd(userAllowance)))}
               title={
                 <span className={hAlign}>
                   Allowance <div className={questionIcon} />
@@ -320,7 +326,7 @@ const BorrowForm = (props: BorrowProps) => {
                   </a>
                 </span>
               }
-              value={fs(userDebt)}
+              value={fsn(userDebt)}
             />
           </div>
           <div className={styles.col}>
@@ -343,7 +349,7 @@ const BorrowForm = (props: BorrowProps) => {
                   after the requested changes to the loan are approved.
                 </span>
               }
-              value={fs(newTotalDebt < 0 ? 0 : newTotalDebt)}
+              value={fsn(newTotalDebt < 0 ? 0 : newTotalDebt)}
               isDisabled={userDebt == 0 ? true : false}
             />
           </div>
@@ -352,7 +358,7 @@ const BorrowForm = (props: BorrowProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={`${fs(liquidationPrice)} ${
+              value={`${fsn(liquidationPrice)} ${
                 userDebt ? `(-${liqPercent.toFixed(0)}%)` : ''
               }`}
               valueSize="normal"
@@ -397,7 +403,7 @@ const BorrowForm = (props: BorrowProps) => {
                   after the requested changes to the loan are approved.
                 </span>
               }
-              value={`${fs(newLiquidationPrice)} ${
+              value={`${fsn(newLiquidationPrice)} ${
                 userDebt ? `(-${newLiqPercent.toFixed(0)}%)` : ''
               }`}
               valueSize="normal"
@@ -436,7 +442,7 @@ const BorrowForm = (props: BorrowProps) => {
                     Borrow Fee <div className={questionIcon} />
                   </span>
                 }
-                value={fs(valueSOL * borrowFee)}
+                value={fsn(valueSOL * borrowFee)}
                 //TODO: add link to docs
                 toolTipLabel={
                   <span>

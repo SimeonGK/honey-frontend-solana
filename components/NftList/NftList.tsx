@@ -5,14 +5,15 @@ import NftCard from '../NftCard/NftCard';
 import { NftCardProps } from '../NftCard/types';
 import * as style from './NftList.css';
 import cs from 'classnames';
+import { formatNumber } from '../../helpers/format';
 // type definition for Nft list
 type NftListProps = {
   data: NftCardProps[];
-  selectNFT: Function
+  selectNFT: Function;
   nftPrice: any;
   selectedNFTMint: string | undefined;
 };
-// type definition for Nft Object 
+// type definition for Nft Object
 type NFTObject = {
   name: string;
   image: string;
@@ -21,7 +22,9 @@ type NFTObject = {
   symbol?: string;
   tokenId?: string;
   updateAuthority?: string;
-}
+};
+
+const { formatShortName: fsn } = formatNumber;
 
 const NftList = (props: NftListProps) => {
   // get props
@@ -30,7 +33,7 @@ const NftList = (props: NftListProps) => {
    * @description runs selectNFT with nft
    * @params NFT object - see type definition NFTObject
    * @returns fires off selectNFT with desired values
-  */
+   */
   function handleClick(nft: NFTObject) {
     selectNFT(nft.name, nft.image, nft.mint, nft.creators);
   }
@@ -40,23 +43,23 @@ const NftList = (props: NftListProps) => {
       {data.length > 0 ? (
         data.map((nft, index) => {
           return (
-              <div
-                className={cs(style.listItem, {
-                  [style.selectedListItem]: nft.mint === selectedNFTMint
-                })}
-                key={nft.name}
-              >
-                <NftCard
-                  onClick={() => handleClick(nft)}
-                  {...nft}
-                  hasBorder={
-                    index !== data.length - 1 || nft.mint === selectedNFTMint
-                  }
-                  text={`◎ ${nftPrice.toFixed(2)} value`}
-                  buttonText={RoundHalfDown(nftPrice * MAX_LTV, 4).toString()}
-                />
-              </div>
-            ); 
+            <div
+              className={cs(style.listItem, {
+                [style.selectedListItem]: nft.mint === selectedNFTMint
+              })}
+              key={nft.name}
+            >
+              <NftCard
+                onClick={() => handleClick(nft)}
+                {...nft}
+                hasBorder={
+                  index !== data.length - 1 || nft.mint === selectedNFTMint
+                }
+                text={`${fsn(nftPrice.toFixed(2))} value`}
+                buttonText={fsn(RoundHalfDown(nftPrice * MAX_LTV, 4))}
+              />
+            </div>
+          );
         })
       ) : (
         <></>

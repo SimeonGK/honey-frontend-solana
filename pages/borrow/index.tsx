@@ -95,7 +95,12 @@ import CreateMarketSidebar from '../../components/CreateMarketSidebar/CreateMark
 const network = 'mainnet-beta';
 import { featureFlags } from 'helpers/featureFlags';
 // import { network } from 'pages/_app';
-const { format: f, formatPercent: fp, formatSol: fs } = formatNumber;
+const {
+  format: f,
+  formatPercent: fp,
+  formatSol: fs,
+  formatShortName: fsn
+} = formatNumber;
 
 const Markets: NextPage = () => {
   // Sets market ID which is used for fetching market specific data
@@ -656,7 +661,7 @@ const Markets: NextPage = () => {
       width: columnsWidth[1],
       render: debt => (
         <div className={style.expandedRowCell}>
-          <InfoBlock title={'Debt:'} value={fs(userDebt)} />
+          <InfoBlock title={'Debt:'} value={fsn(userDebt)} />
         </div>
       )
     },
@@ -665,7 +670,7 @@ const Markets: NextPage = () => {
       width: columnsWidth[2],
       render: allowance => (
         <div className={style.expandedRowCell}>
-          <InfoBlock title={'Allowance:'} value={fs(userAllowance)} />
+          <InfoBlock title={'Allowance:'} value={fsn(userAllowance)} />
         </div>
       )
     },
@@ -674,7 +679,7 @@ const Markets: NextPage = () => {
       width: columnsWidth[3],
       render: value => (
         <div className={style.expandedRowCell}>
-          <InfoBlock title={'Value:'} value={fs(nftPrice)} />
+          <InfoBlock title={'Value:'} value={fsn(nftPrice)} />
         </div>
       )
     },
