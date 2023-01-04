@@ -1,0 +1,1 @@
+export const BONK_DECIMAL_DIVIDER = 100000;
