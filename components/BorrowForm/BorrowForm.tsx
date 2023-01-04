@@ -17,6 +17,8 @@ import { hAlign, extLink } from 'styles/common.css';
 import { questionIcon } from 'styles/icons.css';
 import useToast from 'hooks/useToast';
 import cs from 'classnames';
+import BonkIcon from 'images/bonkCoin.png';
+import { Space } from 'antd';
 import {
   renderMarketImageByID,
   renderNftList,
@@ -462,6 +464,21 @@ const BorrowForm = (props: BorrowProps) => {
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
             maxValue={maxValue}
+            firstInputAddon={
+              <Space align="center">
+                <div
+                  style={{
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    width: 20,
+                    height: 20
+                  }}
+                >
+                  <Image src={BonkIcon} width="100%" height="100%" />
+                </div>
+                BONK
+              </Space>
+            }
           />
         </div>
 
@@ -502,6 +519,7 @@ const BorrowForm = (props: BorrowProps) => {
             disabled={isBorrowButtonDisabled()}
             block
             onClick={handleBorrow}
+            currency="BONK" // CHANGE TO DYNAMIC VALUE
           >
             Borrow
           </HoneyButton>

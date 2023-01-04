@@ -17,6 +17,8 @@ import { useSolBalance } from 'hooks/useSolBalance';
 import { MAX_LTV } from 'constants/loan';
 import { COLLATERAL_FACTOR } from 'helpers/marketHelpers';
 import { renderMarketImageByID } from 'helpers/marketHelpers';
+import { Space } from 'antd';
+import BonkIcon from 'images/bonkCoin.png';
 
 const {
   format: f,
@@ -51,7 +53,7 @@ const RepayForm = (props: RepayProps) => {
   const maxValue = userDebt != 0 ? userDebt : userAllowance;
   const solPrice = fetchedSolPrice;
   const liquidationThreshold = COLLATERAL_FACTOR;
-  const SOLBalance = useSolBalance();
+  const bonkBalance = 0; //FETCH FROM WALLET
   const newDebt = userDebt - (valueSOL ? valueSOL : 0);
   const borrowedValue = userDebt;
   const liquidationPrice = userDebt / liquidationThreshold;
@@ -400,6 +402,21 @@ const RepayForm = (props: RepayProps) => {
             secondInputValue={valueUSD}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
+            firstInputAddon={
+              <Space align="center">
+                <div
+                  style={{
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    width: 20,
+                    height: 20
+                  }}
+                >
+                  <Image src={BonkIcon} width="100%" height="100%" />
+                </div>
+                BONK
+              </Space>
+            }
           />
         </div>
 
