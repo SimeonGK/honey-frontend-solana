@@ -12,6 +12,7 @@ import { questionIcon } from 'styles/icons.css';
 import { hAlign } from 'styles/common.css';
 import useToast from 'hooks/useToast';
 import { renderMarketImageByID, renderMarketName } from 'helpers/marketHelpers';
+import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
 const {
   format: f,
@@ -131,7 +132,7 @@ const DepositForm = (props: DepositFormProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(userTotalDeposits)}
+              value={fs(userTotalDeposits * BONK_DECIMAL_DIVIDER)}
               valueSize="big"
               footer={<span>Your Deposits</span>}
             />

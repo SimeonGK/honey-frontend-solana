@@ -12,6 +12,7 @@ import { questionIcon } from 'styles/icons.css';
 import { hAlign } from 'styles/common.css';
 import useToast from 'hooks/useToast';
 import { renderMarketImageByID, renderMarketName } from 'helpers/marketHelpers';
+import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
 const { format: f, formatPercent: fp, formatSol: fs, parse: p } = formatNumber;
 
@@ -116,7 +117,7 @@ const WithdrawForm = (props: WithdrawFormProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(userTotalDeposits)}
+              value={fs(userTotalDeposits * BONK_DECIMAL_DIVIDER)}
               valueSize="big"
               footer={<span>Your Deposits</span>}
             />
@@ -159,7 +160,7 @@ const WithdrawForm = (props: WithdrawFormProps) => {
 
         <HoneySlider
           currentValue={sliderValue}
-          maxValue={maxValue}
+          maxValue={99999}
           minAvailableValue={0}
           // maxSafePosition={0.4}
           // maxAvailablePosition={maxValue} // TODO: should be capped by available liquidity

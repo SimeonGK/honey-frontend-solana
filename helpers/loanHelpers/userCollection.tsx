@@ -50,6 +50,7 @@ import {
   COLLATERAL_FACTOR,
   HONEY_GENESIS_MARKET_ID
 } from 'helpers/marketHelpers';
+import { toast } from 'react-toastify';
 
 /**
  * @description formatting functions to format with perfect / format in SOL with icon or just a regular 2 decimal format
@@ -402,39 +403,52 @@ export async function decodeReserve(
   honeyClient: HoneyClient,
   parsedReserves: TReserve
 ) {
-  // set reserve data
-  const reserveInfoList = honeyMarket.reserves;
-  let parsedReserve: TReserve = parsedReserves;
-  let totalMarketDeposits = 0;
+  try {
+    console.log('@@--xyz market', honeyMarket.address.toString());
+    console.log('@@--xyz client', honeyClient);
+    console.log('@@--xyz parsed', parsedReserves.market.toString());
 
-  for (const reserve of reserveInfoList) {
-    if (reserve.reserve.equals(PublicKey.default)) {
-      continue;
+    // set reserve data
+    const reserveInfoList = honeyMarket.reserves;
+    let parsedReserve: TReserve = parsedReserves;
+    let totalMarketDeposits = 0;
+
+    for (const reserve of reserveInfoList) {
+      if (reserve.reserve.equals(PublicKey.default)) {
+        continue;
+      }
+      console.log('@@--xyz reserve.reserve', reserve.reserve.toString());
+
+      const { ...data } = await HoneyReserve.decodeReserve(
+        honeyClient,
+        reserve.reserve
+      );
+
+      parsedReserve = data;
+      break;
     }
 
-    const { ...data } = await HoneyReserve.decodeReserve(
-      honeyClient,
-      reserve.reserve
-    );
+    if (parsedReserve !== undefined) {
+      totalMarketDeposits = BnToDecimal(
+        parsedReserve.reserveState.totalDeposits,
+        9,
+        2
+      );
+    }
 
-    parsedReserve = data;
-    break;
+    const totalMarketDebt = await calculateTotalMarketDebt(parsedReserve);
+    return {
+      totalMarketDebt,
+      totalMarketDeposits,
+      parsedReserve
+    };
+  } catch (error) {
+    return {
+      totalMarketDebt: 0,
+      totalMarketDeposits: 0,
+      parsedReserve: 0
+    };
   }
-
-  if (parsedReserve !== undefined) {
-    totalMarketDeposits = BnToDecimal(
-      parsedReserve.reserveState.totalDeposits,
-      9,
-      2
-    );
-  }
-
-  const totalMarketDebt = await calculateTotalMarketDebt(parsedReserve);
-  return {
-    totalMarketDebt,
-    totalMarketDeposits,
-    parsedReserve
-  };
 }
 async function handleFormatMarket(
   origin: string,

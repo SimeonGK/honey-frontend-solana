@@ -37,7 +37,7 @@ interface HoneySliderProps {
   maxUnavailableSliderClassName?: string;
 }
 
-const { formatSol: fs } = formatNumber;
+const { formatSol: fs, formatShortName: fsn } = formatNumber;
 
 export const HoneySlider: FC<HoneySliderProps> = ({
   maxValue,
@@ -106,7 +106,7 @@ export const HoneySlider: FC<HoneySliderProps> = ({
         >
           {!isReadonly && (
             <div className={styles.sliderHeader.primary}>
-              {fs(minAvailableValue)}
+              {fsn(minAvailableValue)}
             </div>
           )}
           <Slider
@@ -132,7 +132,7 @@ export const HoneySlider: FC<HoneySliderProps> = ({
       >
         {!isReadonly && (
           <div className={styles.sliderHeader.secondary}>
-            {fs(maxValue * maxAvailablePosition)}
+            {fsn(maxValue * maxAvailablePosition)}
           </div>
         )}
         <Slider
@@ -161,7 +161,7 @@ export const HoneySlider: FC<HoneySliderProps> = ({
           style={{ width: `${unavailablePosition * 100}%` }}
         >
           {!isReadonly && (
-            <div className={styles.sliderHeader.secondary}>{fs(maxValue)}</div>
+            <div className={styles.sliderHeader.secondary}>{fsn(maxValue)}</div>
           )}
           <Slider
             className={c(

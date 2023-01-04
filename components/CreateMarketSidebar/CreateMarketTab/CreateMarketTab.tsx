@@ -66,7 +66,7 @@ const CreateMarketTab: FC<CreateMarketTabProps> = (
       'GvDMxPzN1sCj7L26YDK2HnMRXEQmQ2aemov8YBtPS7vR'
     );
     const tokenMint = new PublicKey(
-      'So11111111111111111111111111111111111111112'
+      'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
     );
 
     // we need to figure out how the user's changes in the creation page affect this

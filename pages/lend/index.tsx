@@ -65,6 +65,12 @@ import { calculateUserDeposits } from 'helpers/loanHelpers/userCollection';
 import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 // TODO: fetch based on config
 const network = 'mainnet-beta';
+const {
+  format: f,
+  formatPercent: fp,
+  formatSol: fs,
+  formatShortName: fsn
+} = formatNumber;
 
 const Lend: NextPage = () => {
   // market specific constants - calculations / ratios / debt / allowance etc.
@@ -125,7 +131,6 @@ const Lend: NextPage = () => {
    * @params value to be formatted
    * @returns requested format
    */
-  const { format: f, formatPercent: fp, formatSol: fs } = formatNumber;
 
   // ************* HOOKS *************
   /**
@@ -234,14 +239,14 @@ const Lend: NextPage = () => {
       toast.processing();
 
       const depositTokenMint = new PublicKey(
-        'So11111111111111111111111111111111111111112'
+        'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
       );
       // 'So11111111111111111111111111111111111111112';
       // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
 
       const tx = await deposit(
         honeyUser,
-        value,
+        value * 10000000,
         depositTokenMint,
         honeyReserves
       );
@@ -290,7 +295,7 @@ const Lend: NextPage = () => {
     try {
       if (!value) return toast.error('Withdraw failed');
       const depositTokenMint = new PublicKey(
-        'So11111111111111111111111111111111111111112'
+        'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
       );
       // 'So11111111111111111111111111111111111111112';
       // 'DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9'
@@ -298,7 +303,7 @@ const Lend: NextPage = () => {
       toast.processing();
       const tx = await withdraw(
         honeyUser,
-        value,
+        value * 10000000,
         depositTokenMint,
         honeyReserves
       );
@@ -584,7 +589,11 @@ const Lend: NextPage = () => {
         dataIndex: 'value',
         sorter: (a, b) => a.value - b.value,
         render: (value: number, market: any) => {
-          return <div className={style.valueCell}>{fs(value)}</div>;
+          return (
+            <div className={style.valueCell}>
+              {value * BONK_DECIMAL_DIVIDER}
+            </div>
+          );
         }
       },
       {
@@ -607,7 +616,11 @@ const Lend: NextPage = () => {
         dataIndex: 'available',
         sorter: (a, b) => a.available - b.available,
         render: (available: number, market: any) => {
-          return <div className={style.availableCell}>{fs(available)}</div>;
+          return (
+            <div className={style.availableCell}>
+              {available * BONK_DECIMAL_DIVIDER}
+            </div>
+          );
         }
       },
       {
@@ -670,8 +683,12 @@ const Lend: NextPage = () => {
                 <div className={c(style.rateCell, style.lendRate)}>
                   {fp(row.rate)}
                 </div>
-                <div className={style.valueCell}>{fs(row.value)}</div>
-                <div className={style.availableCell}>{fs(row.available)}</div>
+                <div className={style.valueCell}>
+                  {fsn(row.value * BONK_DECIMAL_DIVIDER)}
+                </div>
+                <div className={style.availableCell}>
+                  {fsn(row.available * BONK_DECIMAL_DIVIDER)}
+                </div>
               </HoneyTableRow>
             </>
           );

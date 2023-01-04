@@ -20,6 +20,7 @@ import React, {
   useState
 } from 'react';
 import { formatNFTName, formatNumber } from '../../helpers/format';
+import BN from 'bn.js';
 import Image from 'next/image';
 import { ColumnTitleProps, Key } from 'antd/lib/table/interface';
 import debounce from 'lodash/debounce';
@@ -94,8 +95,14 @@ import CreateMarketSidebar from '../../components/CreateMarketSidebar/CreateMark
 // TODO: change to dynamic value
 const network = 'mainnet-beta';
 import { featureFlags } from 'helpers/featureFlags';
+import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 // import { network } from 'pages/_app';
-const { format: f, formatPercent: fp, formatSol: fs } = formatNumber;
+const {
+  format: f,
+  formatPercent: fp,
+  formatSol: fs,
+  formatShortName: fsn
+} = formatNumber;
 
 const Markets: NextPage = () => {
   // Sets market ID which is used for fetching market specific data
@@ -927,14 +934,14 @@ const Markets: NextPage = () => {
     try {
       if (!val) return toast.error('Please provide a value');
       const borrowTokenMint = new PublicKey(
-        'So11111111111111111111111111111111111111112'
+        'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
       );
       // 'So11111111111111111111111111111111111111112';
       // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
       toast.processing();
       const tx = await borrowAndRefresh(
         honeyUser,
-        val,
+        val * BONK_DECIMAL_DIVIDER,
         borrowTokenMint,
         honeyReserves
       );
@@ -974,14 +981,14 @@ const Markets: NextPage = () => {
     try {
       if (!val) return toast.error('Please provide a value');
       const repayTokenMint = new PublicKey(
-        'So11111111111111111111111111111111111111112'
+        'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
       );
       // 'So11111111111111111111111111111111111111112';
       // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
       toast.processing();
       const tx = await repayAndRefresh(
         honeyUser,
-        val,
+        val * BONK_DECIMAL_DIVIDER,
         repayTokenMint,
         honeyReserves
       );
