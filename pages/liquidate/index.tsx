@@ -24,7 +24,10 @@ import { formatNumber } from '../../helpers/format';
 import { LiquidateTableRow } from '../../types/liquidate';
 import { LiquidateExpandTable } from '../../components/LiquidateExpandTable/LiquidateExpandTable';
 import { RoundHalfDown } from 'helpers/utils';
-import { getOraclePrice } from '../../helpers/loanHelpers/index';
+import {
+  getOraclePrice,
+  getTokenAccounts
+} from '../../helpers/loanHelpers/index';
 import BN from 'bn.js';
 import {
   useAnchor,
@@ -41,7 +44,7 @@ import {
 } from '@honey-finance/sdk';
 import { ConfigureSDK } from 'helpers/loanHelpers';
 import { useConnectedWallet } from '@saberhq/use-solana';
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, PublicKey, Connection } from '@solana/web3.js';
 import { calcNFT, fetchSolPrice } from 'helpers/loanHelpers/userCollection';
 import {
   HONEY_PROGRAM_ID,
@@ -63,6 +66,7 @@ import { populateMarketData } from 'helpers/loanHelpers/userCollection';
 import { MarketTableRow } from 'types/markets';
 import { renderMarket, renderMarketImageByName } from 'helpers/marketHelpers';
 import { network } from 'pages/_app';
+import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
 const { formatPercent: fp, formatSol: fs, formatRoundDown: fd } = formatNumber;
 const Liquidate: NextPage = () => {
@@ -180,23 +184,14 @@ const Liquidate: NextPage = () => {
   //  ************* END HANDLE BIDS *************
 
   //  ************* START FETCH WALLET BALANCE *************
-  /**
-   * @description
-   * @params
-   * @returns
-   */
-  async function fetchWalletBalance(key: PublicKey) {
-    try {
-      const userBalance =
-        (await sdkConfig.saberHqConnection.getBalance(key)) / LAMPORTS_PER_SOL;
-      setUserBalance(userBalance);
-    } catch (error) {
-      console.log('Error', error);
-    }
+  async function fetchBONKBalance(wallet: string, connection: Connection) {
+    const bonkBalance = await getTokenAccounts(wallet, connection);
+    setUserBalance(Number(bonkBalance[0]));
   }
 
   useEffect(() => {
-    if (walletPK) fetchWalletBalance(walletPK);
+    if (walletPK && sdkConfig.saberHqConnection)
+      fetchBONKBalance(walletPK.toString(), sdkConfig.saberHqConnection);
   }, [walletPK]);
   //  ************* END FETCH WALLET BALANCE *************
 
@@ -224,7 +219,7 @@ const Liquidate: NextPage = () => {
 
       biddingArray.map((obligation: any) => {
         if (stringyfiedWalletPK && obligation.bidder === stringyfiedWalletPK) {
-          setCurrentUserBid(Number(obligation.bidLimit / LAMPORTS_PER_SOL));
+          setCurrentUserBid(Number(obligation.bidLimit / BONK_DECIMAL_DIVIDER));
         }
       });
     } else {
@@ -238,7 +233,7 @@ const Liquidate: NextPage = () => {
 
     if (highestBid[0]) {
       setHighestBiddingAddress(highestBid[0].bidder);
-      setHighestBiddingValue(highestBid[0].bidLimit / LAMPORTS_PER_SOL);
+      setHighestBiddingValue(highestBid[0].bidLimit / BONK_DECIMAL_DIVIDER);
     }
   }
   //  ************* END HANDLE BIDDING STATE *************
@@ -462,12 +457,12 @@ const Liquidate: NextPage = () => {
               // console.log(
               //   '@@-- state object',
               //   fetchMarketOutcome[2][0].state.outstandingDebt /
-              //     LAMPORTS_PER_SOL
+              //     BONK_DECIMAL_DIVIDER
               // );
               // const calc = fetchMarketOutcome[2][0].state.outstandingDebt
               //   .div(new BN(10 ** 9))
               //   .toNumber();
-              // console.log('xyz calc', calc / LAMPORTS_PER_SOL);
+              // console.log('xyz calc', calc / BONK_DECIMAL_DIVIDER );
 
               // const outstandingDebt =
               //   fetchMarketOutcome[2][0].state.outstandingDebt.toString();
@@ -712,24 +707,9 @@ const Liquidate: NextPage = () => {
         render: (available: number, market) => {
           return (
             <>
-              <div className={style.containerWrapper}>
-                <div className={style.logoWrapper}>
-                  <div className={style.collectionLogo}>
-                    <HexaBoxContainer>
-                      <Image
-                        src={
-                          'https://quei6zhlcfsxdfyes577gy7bkxmuz7qqakyt72xlbkyh7fysmoza.arweave.net/hQiPZOsRZXGXBJd_82PhVdlM_hACsT_q6wqwf5cSY7I'
-                        }
-                        alt={`BONK NFT image`}
-                        layout="fill"
-                      />
-                    </HexaBoxContainer>
-                  </div>
-                </div>
-                <div className={style.nameCellMobile}>
-                  <div className={style.collectionName}>
-                    {fs(market.totalDebt)}
-                  </div>
+              <div className={style.nameCellMobile}>
+                <div className={style.collectionName}>
+                  {fs(market.totalDebt)}
                 </div>
               </div>
             </>
@@ -759,23 +739,8 @@ const Liquidate: NextPage = () => {
         render: (value: number, market: any) => {
           return (
             <>
-              <div className={style.containerWrapper}>
-                <div className={style.logoWrapper}>
-                  <div className={style.collectionLogo}>
-                    <HexaBoxContainer>
-                      <Image
-                        src={
-                          'https://quei6zhlcfsxdfyes577gy7bkxmuz7qqakyt72xlbkyh7fysmoza.arweave.net/hQiPZOsRZXGXBJd_82PhVdlM_hACsT_q6wqwf5cSY7I'
-                        }
-                        alt={`BONK NFT image`}
-                        layout="fill"
-                      />
-                    </HexaBoxContainer>
-                  </div>
-                </div>
-                <div className={style.nameCellMobile}>
-                  <div className={style.collectionName}>{fs(market.tvl)}</div>
-                </div>
+              <div className={style.nameCellMobile}>
+                <div className={style.collectionName}>{fs(market.tvl)}</div>
               </div>
             </>
           );
