@@ -20,6 +20,8 @@ export type OpenPositions = {
 };
 
 // collection strucutre for the markets
+// HNG market id 6FcJaAzQnuoA6o3sVw1GD6Ba69XuL5jinZpQTzJhd2R3
+// HNG / BONK market id 9Le8tqRmHfLCPfUKS6evAg8s7GYk7Xn3ubo5XcE54iw5
 export const marketCollections: MarketTableRow[] = [
   {
     id: '9Le8tqRmHfLCPfUKS6evAg8s7GYk7Xn3ubo5XcE54iw5',
