@@ -2,8 +2,6 @@ import { ReactElement, FC, Fragment, ReactNode } from 'react';
 import * as styles from './InfoBlock.css';
 import c from 'classnames';
 import HoneyTooltip from 'components/HoneyTooltip/HoneyTooltip';
-import Image from 'next/image';
-import HexaBoxContainer from '../HexaBoxContainer/HexaBoxContainer';
 
 interface InfoBlockProps {
   title?: string | ReactElement;
@@ -28,6 +26,7 @@ export const InfoBlock: FC<InfoBlockProps> = ({
   center,
   className
 }) => {
+  console.log('this is value', value);
   const Container = (a: { children: ReactNode }) =>
     toolTipLabel ? (
       <HoneyTooltip title={toolTipLabel}>{a.children}</HoneyTooltip>
@@ -52,8 +51,7 @@ export const InfoBlock: FC<InfoBlockProps> = ({
         <div
           className={c(
             styles.value[valueSize],
-            valueColor ? styles[valueColor] : '',
-            styles.wrapThis
+            valueColor ? styles[valueColor] : ''
           )}
         >
           {value}
