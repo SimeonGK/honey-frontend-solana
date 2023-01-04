@@ -17,9 +17,10 @@ import { ConnectedWallet } from '@saberhq/use-solana';
 import {
   Connection,
   Keypair,
-  PublicKey,
-  LAMPORTS_PER_SOL
+  LAMPORTS_PER_SOL,
+  PublicKey
 } from '@solana/web3.js';
+import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
 import * as anchor from '@project-serum/anchor';
 import {
@@ -28,7 +29,6 @@ import {
   getNFTAssociatedMetadata,
   HoneyClient,
   HoneyMarket,
-  HoneyMarketReserveInfo,
   HoneyReserve,
   HoneyUser,
   LoanPosition,
@@ -107,6 +107,8 @@ export async function calculateMarketDebt(honeyReserves: any) {
     const depositTokenMint = new PublicKey(
       'So11111111111111111111111111111111111111112'
     );
+    // 'So11111111111111111111111111111111111111112';
+    // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
 
     if (honeyReserves) {
       const depositReserve = honeyReserves.filter((reserve: any) =>
@@ -120,7 +122,7 @@ export async function calculateMarketDebt(honeyReserves: any) {
           .div(new BN(10 ** 15))
           .toNumber();
         if (marketDebt) {
-          let sum = Number(marketDebt / LAMPORTS_PER_SOL);
+          let sum = Number(marketDebt / BONK_DECIMAL_DIVIDER);
           return (marketDebt = RoundHalfDown(sum));
         }
         return marketDebt;
@@ -150,9 +152,10 @@ export async function fetchAllowance(
           .div(new BN(10 ** 15))
           .toNumber() *
           1.002) /
-        LAMPORTS_PER_SOL;
+        1e5;
     }
   }
+
   return RoundHalfDown(nftCollateralValue * MAX_LTV - userLoans, 4);
 }
 
@@ -173,7 +176,7 @@ export async function fetchUserDebt(
         marketReserveInfo[0].loanNoteExchangeRate
           .mul(honeyUser?.loans()[0]?.amount)
           .div(new BN(10 ** 15))
-          .toNumber() / LAMPORTS_PER_SOL;
+          .toNumber() / BONK_DECIMAL_DIVIDER;
     }
   }
 
@@ -208,7 +211,7 @@ export async function calcNFT(
         honeyMarket.nftSwitchboardPriceAggregator
       ); //in usd
 
-      return Number(nftPrice / solPrice);
+      return Number(nftPrice);
     }
   } catch (error) {
     console.log('An error occurred', error);
@@ -390,7 +393,7 @@ async function calculateTotalMarketDebt(parsedReserve: TReserve) {
   return RoundHalfDown(
     parsedReserve.reserveState.outstandingDebt
       .div(new BN(10 ** 15))
-      .toNumber() / LAMPORTS_PER_SOL
+      .toNumber() / BONK_DECIMAL_DIVIDER
   );
 }
 // sets total market debt, total market deposits, decodes parsed reserve
@@ -409,10 +412,11 @@ export async function decodeReserve(
       continue;
     }
 
-    const { data, state } = await HoneyReserve.decodeReserve(
+    const { ...data } = await HoneyReserve.decodeReserve(
       honeyClient,
       reserve.reserve
     );
+
     parsedReserve = data;
     break;
   }
