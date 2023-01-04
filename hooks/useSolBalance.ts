@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useConnectedWallet, useConnection } from '@saberhq/use-solana';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
 export const useSolBalance = () => {
   const [balance, setBalance] = useState(0);
@@ -11,7 +11,7 @@ export const useSolBalance = () => {
     if (!wallet?.connected) return;
     try {
       let bal = await connection.getBalance(wallet.publicKey);
-      setBalance(bal / LAMPORTS_PER_SOL);
+      setBalance(bal / BONK_DECIMAL_DIVIDER);
     } catch (error) {
       console.log(error);
     }
