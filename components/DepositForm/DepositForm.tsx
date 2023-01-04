@@ -174,7 +174,7 @@ const DepositForm = (props: DepositFormProps) => {
 
         <HoneySlider
           currentValue={sliderValue}
-          maxValue={Number(frd(maxValue))}
+          maxValue={Number(maxValue)}
           minAvailableValue={0}
           onChange={handleSliderChange}
         />
