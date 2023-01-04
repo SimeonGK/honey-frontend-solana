@@ -31,7 +31,7 @@ import EmptyStateDetails from 'components/EmptyStateDetails/EmptyStateDetails';
 import { getColumnSortStatus } from '../../helpers/tableUtils';
 import { useConnectedWallet, useSolana } from '@saberhq/use-solana';
 import { BnToDecimal, ConfigureSDK } from '../../helpers/loanHelpers/index';
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import HealthLvl from '../../components/HealthLvl/HealthLvl';
 import useFetchNFTByUser from 'hooks/useNFTV2';
 import {
@@ -926,14 +926,15 @@ const Markets: NextPage = () => {
   async function executeBorrow(val: any, toast: ToastProps['toast']) {
     try {
       if (!val) return toast.error('Please provide a value');
-      // if (val == 1.6) val = val - 0.01;
       const borrowTokenMint = new PublicKey(
         'So11111111111111111111111111111111111111112'
       );
+      // 'So11111111111111111111111111111111111111112';
+      // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
       toast.processing();
       const tx = await borrowAndRefresh(
         honeyUser,
-        val * LAMPORTS_PER_SOL,
+        val,
         borrowTokenMint,
         honeyReserves
       );
@@ -957,6 +958,7 @@ const Markets: NextPage = () => {
         return toast.error('Borrow failed');
       }
     } catch (error) {
+      console.log('@@-- error', error);
       return toast.error('An error occurred');
     }
   }
@@ -974,10 +976,12 @@ const Markets: NextPage = () => {
       const repayTokenMint = new PublicKey(
         'So11111111111111111111111111111111111111112'
       );
+      // 'So11111111111111111111111111111111111111112';
+      // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
       toast.processing();
       const tx = await repayAndRefresh(
         honeyUser,
-        val * LAMPORTS_PER_SOL,
+        val,
         repayTokenMint,
         honeyReserves
       );
