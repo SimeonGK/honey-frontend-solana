@@ -23,7 +23,7 @@ import { getColumnSortStatus } from '../../helpers/tableUtils';
 import HoneySider from '../../components/HoneySider/HoneySider';
 import HoneyContent from '../../components/HoneyContent/HoneyContent';
 import { RoundHalfDown } from 'helpers/utils';
-import Image from 'next/image';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
   deposit,
   withdraw,
@@ -33,8 +33,16 @@ import {
   MarketBundle,
   waitForConfirmation
 } from '@honey-finance/sdk';
-import { BnToDecimal, ConfigureSDK } from '../../helpers/loanHelpers/index';
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import {
+  BnToDecimal,
+  ConfigureSDK,
+  getTokenAccounts
+} from '../../helpers/loanHelpers/index';
+import {
+  PublicKey,
+  Connection,
+  GetProgramAccountsFilter
+} from '@solana/web3.js';
 import BN from 'bn.js';
 import {
   calcNFT,
@@ -54,6 +62,7 @@ import { marketCollections } from '../../helpers/marketHelpers';
 import { generateMockHistoryData } from '../../helpers/chartUtils';
 import { renderMarket, renderMarketImageByName } from 'helpers/marketHelpers';
 import { calculateUserDeposits } from 'helpers/loanHelpers/userCollection';
+import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 // TODO: fetch based on config
 const network = 'mainnet-beta';
 
@@ -89,6 +98,17 @@ const Lend: NextPage = () => {
   // init wallet and sdkConfiguration file
   const sdkConfig = ConfigureSDK();
   let walletPK = sdkConfig.sdkWallet?.publicKey;
+
+  async function fetchBONKBalance(wallet: string, connection: Connection) {
+    const bonkBalance = await getTokenAccounts(wallet, connection);
+    setUserWalletBalance(Number(bonkBalance[0]));
+  }
+
+  useEffect(() => {
+    if (walletPK && sdkConfig.saberHqConnection)
+      fetchBONKBalance(walletPK.toString(), sdkConfig.saberHqConnection);
+  }, [sdkConfig.saberHqConnection]);
+
   /**
    * @description sets the market ID based on market click
    * @params Honey table record - contains all info about a table (aka market)
@@ -157,7 +177,8 @@ const Lend: NextPage = () => {
   async function fetchWalletBalance(key: PublicKey) {
     try {
       const userBalance =
-        (await sdkConfig.saberHqConnection.getBalance(key)) / LAMPORTS_PER_SOL;
+        (await sdkConfig.saberHqConnection.getBalance(key)) /
+        BONK_DECIMAL_DIVIDER;
       setUserWalletBalance(userBalance);
     } catch (error) {
       console.log('Error', error);
@@ -210,17 +231,17 @@ const Lend: NextPage = () => {
     if (!toast) return;
     try {
       if (!value) return toast.error('Deposit failed');
-
-      const tokenAmount = value * LAMPORTS_PER_SOL;
       toast.processing();
 
       const depositTokenMint = new PublicKey(
         'So11111111111111111111111111111111111111112'
       );
+      // 'So11111111111111111111111111111111111111112';
+      // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
 
       const tx = await deposit(
         honeyUser,
-        tokenAmount,
+        value,
         depositTokenMint,
         honeyReserves
       );
@@ -268,16 +289,16 @@ const Lend: NextPage = () => {
     if (!toast) return;
     try {
       if (!value) return toast.error('Withdraw failed');
-
-      const tokenAmount = value * LAMPORTS_PER_SOL;
       const depositTokenMint = new PublicKey(
         'So11111111111111111111111111111111111111112'
       );
+      // 'So11111111111111111111111111111111111111112';
+      // 'DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9'
 
       toast.processing();
       const tx = await withdraw(
         honeyUser,
-        tokenAmount,
+        value,
         depositTokenMint,
         honeyReserves
       );
@@ -435,7 +456,6 @@ const Lend: NextPage = () => {
     sdkConfig.saberHqConnection,
     sdkConfig.sdkWallet,
     marketData,
-    userTotalDeposits,
     currentMarketId,
     honeyReservesChange
   ]);
