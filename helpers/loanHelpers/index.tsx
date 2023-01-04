@@ -1,16 +1,19 @@
-import {
-  useConnection,
-  useConnectedWallet
-} from '@saberhq/use-solana';
+import { useConnection, useConnectedWallet } from '@saberhq/use-solana';
 import { HONEY_PROGRAM_ID } from 'helpers/marketHelpers/index';
 import { toast } from 'react-toastify';
 import BN from 'bn.js';
 import { Big } from 'big.js';
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  GetProgramAccountsFilter
+} from '@solana/web3.js';
 import {
   AggregatorAccount,
   loadSwitchboardProgram
 } from '@switchboard-xyz/switchboard-v2';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 /**
  * @description exports the current sdk configuration object
@@ -24,6 +27,42 @@ export function ConfigureSDK() {
     honeyId: HONEY_PROGRAM_ID
   };
 }
+
+export async function getTokenAccounts(
+  wallet: string,
+  solanaConnection: Connection
+) {
+  const filters: GetProgramAccountsFilter[] = [
+    {
+      dataSize: 165 //size of account (bytes)
+    },
+    {
+      memcmp: {
+        offset: 32, //location of our query in the account (bytes)
+        bytes: wallet //our search criteria, a base58 encoded string
+      }
+    },
+    {
+      memcmp: {
+        offset: 0, //number of bytes
+        bytes: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' //base58 encoded string
+      }
+    }
+  ];
+
+  const accounts = await solanaConnection.getParsedProgramAccounts(
+    TOKEN_PROGRAM_ID,
+    { filters: filters }
+  );
+  return accounts.map(account => {
+    //Parse the account data
+    const parsedAccountInfo: any = account.account.data;
+    const tokenBalance: number =
+      parsedAccountInfo['parsed']['info']['tokenAmount']['uiAmount'];
+    return tokenBalance;
+  });
+}
+
 /**
  * @description exports function that validates if input is number
  * @params user input
@@ -96,7 +135,7 @@ export async function toastResponse(
 }
 /**
  * @description custom async timeout which returns a promise
- * @params miliseconds 
+ * @params miliseconds
  * @returns promise
  */
 export const asyncTimeout = (ms: number) => {
@@ -108,7 +147,7 @@ export const asyncTimeout = (ms: number) => {
 /**
  * @description converts bn to decimal
  * @params value as in BN, amount of decimals required, amount of precision
- * @returns number with requested decimals 
+ * @returns number with requested decimals
  */
 export function BnToDecimal(
   val: BN | undefined,
@@ -135,8 +174,7 @@ export async function getOraclePrice(
   aggregatorKey: PublicKey | undefined
 ): Promise<any> {
   // load the switchboard program
-  if(!aggregatorKey)
-    return 0;
+  if (!aggregatorKey) return 0;
   const program = await loadSwitchboardProgram(
     cluster,
     connection,
