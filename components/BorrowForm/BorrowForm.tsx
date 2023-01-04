@@ -217,7 +217,7 @@ const BorrowForm = (props: BorrowProps) => {
           </div>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(Number(frd(userAllowance)))}
+              value={fs(userAllowance)}
               title={
                 <span className={hAlign}>
                   Allowance <div className={questionIcon} />
