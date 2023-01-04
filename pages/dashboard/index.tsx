@@ -25,7 +25,7 @@ import {
   useMarket,
   withdrawNFT
 } from '@honey-finance/sdk';
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { BnToDecimal, ConfigureSDK } from '../../helpers/loanHelpers';
 import useFetchNFTByUser from '../../hooks/useNFTV2';
 import { useConnectedWallet } from '@saberhq/use-solana';
@@ -48,6 +48,7 @@ import { TABLET_BP } from '../../constants/breakpoints';
 import LendSidebar from '../../components/LendSidebar/LendSidebar';
 import { PositionType } from '../../types/dashboard';
 import { formatNumber } from '../../helpers/format';
+import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
 const network = 'devnet'; // change to dynamic value
 
@@ -302,7 +303,7 @@ const Dashboard: NextPage = () => {
           .div(new BN(10 ** 15))
           .toNumber();
         if (marketDebt) {
-          let sum = Number(marketDebt / LAMPORTS_PER_SOL);
+          let sum = Number(marketDebt / BONK_DECIMAL_DIVIDER);
           setTotalMarketDebt(RoundHalfDown(sum));
         }
       }
@@ -567,12 +568,7 @@ const Dashboard: NextPage = () => {
         'So11111111111111111111111111111111111111112'
       );
       toast.processing();
-      const tx = await borrow(
-        honeyUser,
-        val * LAMPORTS_PER_SOL,
-        borrowTokenMint,
-        honeyReserves
-      );
+      const tx = await borrow(honeyUser, val, borrowTokenMint, honeyReserves);
 
       if (tx[0] == 'SUCCESS') {
         let refreshedHoneyReserves = await honeyReserves[0].sendRefreshTx();
@@ -618,12 +614,7 @@ const Dashboard: NextPage = () => {
         'So11111111111111111111111111111111111111112'
       );
       toast.processing();
-      const tx = await repay(
-        honeyUser,
-        val * LAMPORTS_PER_SOL,
-        repayTokenMint,
-        honeyReserves
-      );
+      const tx = await repay(honeyUser, val, repayTokenMint, honeyReserves);
 
       if (tx[0] == 'SUCCESS') {
         let refreshedHoneyReserves = await honeyReserves[0].sendRefreshTx();
