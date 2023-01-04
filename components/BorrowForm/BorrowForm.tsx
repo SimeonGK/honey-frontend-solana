@@ -459,8 +459,8 @@ const BorrowForm = (props: BorrowProps) => {
             </div>
           </div>
           <InputsBlock
-            firstInputValue={valueSOL}
-            secondInputValue={valueUSD}
+            firstInputValue={Number(valueSOL.toFixed())}
+            secondInputValue={Number(valueUSD.toFixed())}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
             maxValue={maxValue}

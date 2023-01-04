@@ -398,8 +398,8 @@ const RepayForm = (props: RepayProps) => {
             </div>
           </div>
           <InputsBlock
-            firstInputValue={valueSOL}
-            secondInputValue={valueUSD}
+            firstInputValue={Number(valueSOL?.toFixed())}
+            secondInputValue={Number(valueUSD?.toFixed())}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
             firstInputAddon={
