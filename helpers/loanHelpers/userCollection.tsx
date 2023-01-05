@@ -404,10 +404,6 @@ export async function decodeReserve(
   parsedReserves: TReserve
 ) {
   try {
-    console.log('@@--xyz market', honeyMarket.address.toString());
-    console.log('@@--xyz client', honeyClient);
-    console.log('@@--xyz parsed', parsedReserves.market.toString());
-
     // set reserve data
     const reserveInfoList = honeyMarket.reserves;
     let parsedReserve: TReserve = parsedReserves;
@@ -417,7 +413,6 @@ export async function decodeReserve(
       if (reserve.reserve.equals(PublicKey.default)) {
         continue;
       }
-      console.log('@@--xyz reserve.reserve', reserve.reserve.toString());
 
       const { ...data } = await HoneyReserve.decodeReserve(
         honeyClient,

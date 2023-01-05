@@ -440,19 +440,6 @@ const Liquidate: NextPage = () => {
               const honeyMarket: HoneyMarket = collection.marketData[0].market;
               const honeyClient: HoneyClient = collection.marketData[0].client;
               const parsedReserves = collection.marketData[0].reserves[0].data;
-              const pR = collection.marketData[0].reserves[0];
-
-              const fetchMarketOutcome = await HoneyMarket.fetchMarket(
-                honeyClient,
-                honeyMarket.address
-              );
-
-              const fetchFloorPriceOutcome =
-                await honeyMarket.fetchNFTFloorPrice('mainnet-beta');
-
-              const fetchReserveData = await pR.fetchReserveValue(
-                'mainnet-beta'
-              );
 
               // console.log(
               //   '@@-- state object',
