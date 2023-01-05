@@ -108,6 +108,7 @@ const Lend: NextPage = () => {
   async function fetchBONKBalance(wallet: string, connection: Connection) {
     const bonkBalance = await getTokenAccounts(wallet, connection);
     setUserWalletBalance(Number(bonkBalance[0]));
+    console;
   }
 
   useEffect(() => {
@@ -246,7 +247,7 @@ const Lend: NextPage = () => {
 
       const tx = await deposit(
         honeyUser,
-        value * 10000000,
+        new BN(value * BONK_DECIMAL_DIVIDER),
         depositTokenMint,
         honeyReserves
       );
@@ -303,7 +304,7 @@ const Lend: NextPage = () => {
       toast.processing();
       const tx = await withdraw(
         honeyUser,
-        value * 10000000,
+        new BN(value * BONK_DECIMAL_DIVIDER),
         depositTokenMint,
         honeyReserves
       );

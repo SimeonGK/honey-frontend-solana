@@ -168,7 +168,7 @@ const Markets: NextPage = () => {
   >([]);
   const [userAllowance, setUserAllowance] = useState(0);
   const [loanToValue, setLoanToValue] = useState(0);
-  const [userDebt, setUserDebt] = useState(0);
+  const [userDebt, setUserDebt] = useState<number | undefined>(0);
   const [cRatio, setCRatio] = useState(0);
   const [reserveHoneyState, setReserveHoneyState] = useState(0);
   const [launchAreaWidth, setLaunchAreaWidth] = useState<number>(840);
@@ -216,7 +216,6 @@ const Markets: NextPage = () => {
       marketIDs,
       false
     );
-
     setMarketData(data as unknown as MarketBundle[]);
   }
 
@@ -268,8 +267,9 @@ const Markets: NextPage = () => {
     return await handleOpenPositions(verifiedCreator, currentOpenPositions);
   }
   // calculation of health percentage
-  const healthPercent =
-    ((nftPrice - userDebt / COLLATERAL_FACTOR) / nftPrice) * 100;
+  const healthPercent = userDebt
+    ? ((nftPrice - userDebt / COLLATERAL_FACTOR) / nftPrice) * 100
+    : 0;
 
   // inits the markets with relevant data
   useEffect(() => {
@@ -319,7 +319,7 @@ const Markets: NextPage = () => {
               if (currentMarketId === collection.id) {
                 setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
                 setUserAllowance(collection.allowance);
-                setUserDebt(Number(collection.userDebt));
+                setUserDebt(collection.userDebt ? collection.userDebt : 0);
                 setLoanToValue(Number(collection.ltv));
               }
 
@@ -814,7 +814,8 @@ const Markets: NextPage = () => {
               const ltv = await fetchLTV(totalMarketDebt, nftPrice);
 
               setUserAllowance(userAllowance);
-              setUserDebt(userDebt);
+              if (userDebt) setUserDebt(userDebt);
+
               setLoanToValue(ltv);
               reserveHoneyState === 0
                 ? setReserveHoneyState(1)
@@ -988,7 +989,7 @@ const Markets: NextPage = () => {
       toast.processing();
       const tx = await repayAndRefresh(
         honeyUser,
-        new BN(val * BONK_DECIMAL_DIVIDER),
+        val * BONK_DECIMAL_DIVIDER,
         repayTokenMint,
         honeyReserves
       );
@@ -1029,7 +1030,7 @@ const Markets: NextPage = () => {
               executeWithdrawNFT={executeWithdrawNFT}
               executeBorrow={executeBorrow}
               executeRepay={executeRepay}
-              userDebt={userDebt}
+              userDebt={userDebt ? userDebt : 0}
               userAllowance={userAllowance}
               loanToValue={loanToValue}
               hideMobileSidebar={hideMobileSidebar}

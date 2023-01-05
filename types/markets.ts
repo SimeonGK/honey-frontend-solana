@@ -1,6 +1,7 @@
 import { ColumnType } from 'antd/lib/table';
 import { PublicKey } from '@solana/web3.js';
 import { MarketBundle } from '@honey-finance/sdk';
+import BN from 'bn.js';
 
 export type MarketTableRow = {
   allowance: number;
@@ -47,7 +48,7 @@ export type MarketTablePosition = {
   updateAuthority?: PublicKey;
   uri?: string;
   nftPrice?: number;
-  userDebt?: number;
+  userDebt?: BN;
   ltv?: number;
   allowance?: number;
 };
