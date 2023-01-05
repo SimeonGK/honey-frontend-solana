@@ -989,7 +989,7 @@ const Markets: NextPage = () => {
       toast.processing();
       const tx = await repayAndRefresh(
         honeyUser,
-        val * BONK_DECIMAL_DIVIDER,
+        new BN(val * BONK_DECIMAL_DIVIDER),
         repayTokenMint,
         honeyReserves
       );
