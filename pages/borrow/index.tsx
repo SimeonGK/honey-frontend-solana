@@ -95,7 +95,7 @@ import CreateMarketSidebar from '../../components/CreateMarketSidebar/CreateMark
 // TODO: change to dynamic value
 const network = 'mainnet-beta';
 import { featureFlags } from 'helpers/featureFlags';
-import { BONK_DECIMAL_DIVIDER } from 'constants/market';
+import { BONK_DECIMAL_DIVIDER, BONK_MARKET_ID } from 'constants/market';
 // import { network } from 'pages/_app';
 const {
   format: f,
@@ -981,11 +981,8 @@ const Markets: NextPage = () => {
   async function executeRepay(val: any, toast: ToastProps['toast']) {
     try {
       if (!val) return toast.error('Please provide a value');
-      const repayTokenMint = new PublicKey(
-        'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
-      );
-      // 'So11111111111111111111111111111111111111112';
-      // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
+      const repayTokenMint = new PublicKey(BONK_MARKET_ID);
+
       toast.processing();
       const tx = await repayAndRefresh(
         honeyUser,
