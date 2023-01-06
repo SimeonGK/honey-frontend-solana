@@ -26,7 +26,6 @@ export const InfoBlock: FC<InfoBlockProps> = ({
   center,
   className
 }) => {
-  console.log('this is value', value);
   const Container = (a: { children: ReactNode }) =>
     toolTipLabel ? (
       <HoneyTooltip title={toolTipLabel}>{a.children}</HoneyTooltip>
