@@ -592,7 +592,7 @@ const Lend: NextPage = () => {
         render: (value: number, market: any) => {
           return (
             <div className={style.valueCell}>
-              {value * BONK_DECIMAL_DIVIDER}
+              {fsn(value * BONK_DECIMAL_DIVIDER)}
             </div>
           );
         }
@@ -619,7 +619,7 @@ const Lend: NextPage = () => {
         render: (available: number, market: any) => {
           return (
             <div className={style.availableCell}>
-              {available * BONK_DECIMAL_DIVIDER}
+              {fsn(available * BONK_DECIMAL_DIVIDER)}
             </div>
           );
         }

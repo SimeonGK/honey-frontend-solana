@@ -11,7 +11,7 @@ import HealthLvl from 'components/HealthLvl/HealthLvl';
 import HoneyButton from 'components/HoneyButton/HoneyButton';
 import { renderMarketImageByID } from 'helpers/marketHelpers';
 
-const { formatPercent: fp, formatSol: fs } = formatNumber;
+const { formatPercent: fp, formatSol: fs, formatShortName: fsn } = formatNumber;
 
 export const LiquidateExpandTableMobile: FC<{
   data: LiquidateTablePosition[];
@@ -44,7 +44,7 @@ export const LiquidateExpandTableMobile: FC<{
         <div className={sharedStyles.expandedRowCell}>
           <InfoBlock
             title={'Until liquidation:'}
-            value={fs(untilLiquidation)}
+            value={fsn(untilLiquidation)}
           />
         </div>
       )

@@ -512,7 +512,7 @@ const Markets: NextPage = () => {
               key: 'value',
               hidden: windowWidth < TABLET_BP,
               render: (value: number) => {
-                return <div className={style.valueCell}>{fs(value)}</div>;
+                return <div className={style.valueCell}>{fsn(value)}</div>;
               }
             }
           ],
@@ -543,14 +543,14 @@ const Markets: NextPage = () => {
               key: 'available',
               render: (available: number, data: MarketTableRow) => {
                 return (
-                  <div className={style.availableCell}>{fs(available)}</div>
+                  <div className={style.availableCell}>{fsn(available)}</div>
                 );
               }
             }
           ],
           sorter: (a: MarketTableRow, b: MarketTableRow) => a.value - b.value,
           render: (value: number, data: MarketTableRow) => {
-            return <div className={style.valueCell}>{fs(value)}</div>;
+            return <div className={style.valueCell}>{fsn(value)}</div>;
           }
         },
 
@@ -617,8 +617,8 @@ const Markets: NextPage = () => {
               />
               <HoneyTableRow>
                 <div className={style.rateCell}>{fp(row.rate)}</div>
-                <div className={style.availableCell}>{fs(row.value)}</div>
-                <div className={style.availableCell}>{fs(row.available)}</div>
+                <div className={style.availableCell}>{fsn(row.value)}</div>
+                <div className={style.availableCell}>{fsn(row.available)}</div>
               </HoneyTableRow>
             </>
           );
@@ -663,7 +663,7 @@ const Markets: NextPage = () => {
       width: columnsWidth[1],
       render: debt => (
         <div className={style.expandedRowCell}>
-          <InfoBlock title={'Debt:'} value={fs(userDebt)} />
+          <InfoBlock title={'Debt:'} value={fsn(userDebt)} />
         </div>
       )
     },
@@ -672,7 +672,7 @@ const Markets: NextPage = () => {
       width: columnsWidth[2],
       render: allowance => (
         <div className={style.expandedRowCell}>
-          <InfoBlock title={'Allowance:'} value={fs(userAllowance)} />
+          <InfoBlock title={'Allowance:'} value={fsn(userAllowance)} />
         </div>
       )
     },
@@ -681,7 +681,7 @@ const Markets: NextPage = () => {
       width: columnsWidth[3],
       render: value => (
         <div className={style.expandedRowCell}>
-          <InfoBlock title={'Value:'} value={fs(nftPrice)} />
+          <InfoBlock title={'Value:'} value={fsn(nftPrice)} />
         </div>
       )
     },

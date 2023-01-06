@@ -68,7 +68,12 @@ import { renderMarket, renderMarketImageByName } from 'helpers/marketHelpers';
 import { network } from 'pages/_app';
 import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
-const { formatPercent: fp, formatSol: fs, formatRoundDown: fd } = formatNumber;
+const {
+  formatPercent: fp,
+  formatSol: fs,
+  formatRoundDown: fd,
+  formatShortName: fsn
+} = formatNumber;
 const Liquidate: NextPage = () => {
   // base state
   const [hasPosition, setHasPosition] = useState(false);
@@ -696,7 +701,7 @@ const Liquidate: NextPage = () => {
             <>
               <div className={style.nameCellMobile}>
                 <div className={style.collectionName}>
-                  {fs(market.totalDebt)}
+                  {fsn(market.totalDebt ?? 0)}
                 </div>
               </div>
             </>
@@ -727,7 +732,7 @@ const Liquidate: NextPage = () => {
           return (
             <>
               <div className={style.nameCellMobile}>
-                <div className={style.collectionName}>{fs(market.tvl)}</div>
+                <div className={style.collectionName}>{fsn(market.tvl)}</div>
               </div>
             </>
           );

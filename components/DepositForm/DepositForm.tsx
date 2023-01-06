@@ -19,7 +19,8 @@ const {
   formatPercent: fp,
   formatSol: fs,
   parse: p,
-  formatRoundDown: frd
+  formatRoundDown: frd,
+  formatShortName: fsn
 } = formatNumber;
 
 const DepositForm = (props: DepositFormProps) => {
@@ -132,7 +133,7 @@ const DepositForm = (props: DepositFormProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(userTotalDeposits * BONK_DECIMAL_DIVIDER)}
+              value={fsn(userTotalDeposits * BONK_DECIMAL_DIVIDER)}
               valueSize="big"
               footer={<span>Your Deposits</span>}
             />

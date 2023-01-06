@@ -15,7 +15,7 @@ import { RoundHalfDown } from 'helpers/utils';
 import { LiquidateExpandTableProps } from './LiquidateExpandTableProps';
 import HexaBoxContainer from '../HexaBoxContainer/HexaBoxContainer';
 
-const { formatPercent: fp, formatSol: fs } = formatNumber;
+const { formatPercent: fp, formatSol: fs, formatShortName: fsn } = formatNumber;
 
 type FilterType = 'most_critical' | 'max_debt' | 'most_valuable';
 
@@ -55,7 +55,7 @@ export const LiquidateExpandTable = (props: LiquidateExpandTableProps) => {
           <div className={sharedStyles.expandedRowCell}>
             <InfoBlock
               title={'Until liquidation:'}
-              value={fs(RoundHalfDown(untilLiquidation, 5))}
+              value={fsn(RoundHalfDown(untilLiquidation, 5))}
             />
           </div>
         )
@@ -76,7 +76,7 @@ export const LiquidateExpandTable = (props: LiquidateExpandTableProps) => {
         sorter: (a, b) => a.estimatedValue - b.estimatedValue,
         render: estimatedValue => (
           <div className={sharedStyles.expandedRowCell}>
-            <InfoBlock title={'Estimated value:'} value={fs(estimatedValue)} />
+            <InfoBlock title={'Estimated value:'} value={fsn(estimatedValue)} />
           </div>
         )
       }

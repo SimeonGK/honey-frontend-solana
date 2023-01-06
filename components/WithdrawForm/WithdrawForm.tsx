@@ -14,7 +14,13 @@ import useToast from 'hooks/useToast';
 import { renderMarketImageByID, renderMarketName } from 'helpers/marketHelpers';
 import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
-const { format: f, formatPercent: fp, formatSol: fs, parse: p } = formatNumber;
+const {
+  format: f,
+  formatPercent: fp,
+  formatSol: fs,
+  parse: p,
+  formatShortName: fsn
+} = formatNumber;
 
 const WithdrawForm = (props: WithdrawFormProps) => {
   const {
@@ -117,7 +123,7 @@ const WithdrawForm = (props: WithdrawFormProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(userTotalDeposits * BONK_DECIMAL_DIVIDER)}
+              value={fsn(userTotalDeposits * BONK_DECIMAL_DIVIDER)}
               valueSize="big"
               footer={<span>Your Deposits</span>}
             />
