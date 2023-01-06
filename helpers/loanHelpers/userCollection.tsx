@@ -185,6 +185,7 @@ export async function fetchUserDebt(
 }
 // filters out zero debt obligations and multiplies outstanding obl. by nft price
 export async function fetchTVL(nftPrice: number, obligations: any) {
+  if (!obligations.length) return 0;
   return nftPrice * obligations.filter((obl: any) => obl.debt !== 0).length;
 }
 
