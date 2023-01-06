@@ -228,7 +228,7 @@ const Lend: NextPage = () => {
   //     marketReserveInfo,
   //     honeyUser
   //   );
-  //   setUserTotalDeposits(Number(totalUserDeposits));
+  //   setUserTotalDeposits(totalUserDeposits);
   // }
 
   // useEffect(() => {
@@ -425,8 +425,14 @@ const Lend: NextPage = () => {
             setActiveMarketSupplied(collection.value);
             setActiveMarketAvailable(collection.available);
             setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+<<<<<<< Updated upstream
             console.log('user total deposits', userTotalDeposits);
             setUserTotalDeposits(collection.userTotalDeposits ?? 0);
+=======
+            collection.userTotalDeposits
+              ? setUserTotalDeposits(collection.userTotalDeposits)
+              : setUserTotalDeposits(0);
+>>>>>>> Stashed changes
 
             return collection;
           })
@@ -444,10 +450,15 @@ const Lend: NextPage = () => {
     currentMarketId,
     honeyReservesChange,
     userOpenPositions,
+<<<<<<< Updated upstream
     honeyUser,
     honeyMarket,
     honeyClient,
     parsedReserves
+=======
+    marketReserveInfo,
+    honeyUser
+>>>>>>> Stashed changes
   ]);
 
   const onSearch = (searchTerm: string): LendTableRow[] => {
