@@ -37,11 +37,7 @@ const WithdrawForm = (props: WithdrawFormProps) => {
   const [valueSOL, setValueSOL] = useState<number>(0);
   const [sliderValue, setSliderValue] = useState(0);
   const { toast, ToastComponent } = useToast();
-<<<<<<< Updated upstream
-=======
 
-  console.log('usertotal deposit - withdraw', userTotalDeposits);
->>>>>>> Stashed changes
   const solPrice = fetchedSolPrice;
 
   // Put your validators here
@@ -164,21 +160,13 @@ const WithdrawForm = (props: WithdrawFormProps) => {
             secondInputValue={valueUSD}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
-<<<<<<< Updated upstream
-            maxValue={userTotalDeposits * BONK_DECIMAL_DIVIDER}
-=======
             maxValue={userTotalDeposits}
->>>>>>> Stashed changes
           />
         </div>
 
         <HoneySlider
           currentValue={sliderValue}
-<<<<<<< Updated upstream
-          maxValue={userTotalDeposits * BONK_DECIMAL_DIVIDER}
-=======
           maxValue={userTotalDeposits}
->>>>>>> Stashed changes
           minAvailableValue={0}
           // maxSafePosition={0.4}
           // maxAvailablePosition={maxValue} // TODO: should be capped by available liquidity

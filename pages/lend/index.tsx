@@ -422,17 +422,14 @@ const Lend: NextPage = () => {
               )) || 0) * collection.utilizationRate;
 
             collection.stats = getPositionData();
-            setActiveMarketSupplied(collection.value);
-            setActiveMarketAvailable(collection.available);
-            setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
-<<<<<<< Updated upstream
-            console.log('user total deposits', userTotalDeposits);
-            setUserTotalDeposits(collection.userTotalDeposits ?? 0);
-=======
-            collection.userTotalDeposits
-              ? setUserTotalDeposits(collection.userTotalDeposits)
-              : setUserTotalDeposits(0);
->>>>>>> Stashed changes
+            if (currentMarketId == collection.id) {
+              setActiveMarketSupplied(collection.value);
+              setActiveMarketAvailable(collection.available);
+              setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+              collection.userTotalDeposits
+                ? setUserTotalDeposits(collection.userTotalDeposits)
+                : setUserTotalDeposits(0);
+            }
 
             return collection;
           })
@@ -449,16 +446,7 @@ const Lend: NextPage = () => {
     sdkConfig.sdkWallet,
     currentMarketId,
     honeyReservesChange,
-    userOpenPositions,
-<<<<<<< Updated upstream
-    honeyUser,
-    honeyMarket,
-    honeyClient,
-    parsedReserves
-=======
-    marketReserveInfo,
-    honeyUser
->>>>>>> Stashed changes
+    userOpenPositions
   ]);
 
   const onSearch = (searchTerm: string): LendTableRow[] => {
