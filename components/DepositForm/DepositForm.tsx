@@ -49,7 +49,6 @@ const DepositForm = (props: DepositFormProps) => {
     }
   }, [value, available]);
   // constants
-  const maxValue = userWalletBalance;
   const solPrice = fetchedSolPrice;
 
   // Put your validators here
@@ -170,13 +169,13 @@ const DepositForm = (props: DepositFormProps) => {
             secondInputValue={valueUSD}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
-            maxValue={maxValue}
+            maxValue={userWalletBalance}
           />
         </div>
 
         <HoneySlider
           currentValue={sliderValue}
-          maxValue={Number(maxValue)}
+          maxValue={userWalletBalance}
           minAvailableValue={0}
           onChange={handleSliderChange}
         />
