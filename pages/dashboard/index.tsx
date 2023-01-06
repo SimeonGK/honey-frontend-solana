@@ -243,7 +243,6 @@ const Dashboard: NextPage = () => {
     loading,
     collateralNFTPositions,
     loanPositions,
-    fungibleCollateralPosition,
     refreshPositions,
     error
   } = useBorrowPositions(
