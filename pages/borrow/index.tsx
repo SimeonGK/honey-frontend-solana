@@ -168,7 +168,7 @@ const Markets: NextPage = () => {
   >([]);
   const [userAllowance, setUserAllowance] = useState(0);
   const [loanToValue, setLoanToValue] = useState(0);
-  const [userDebt, setUserDebt] = useState<number | undefined>(0);
+  const [userDebt, setUserDebt] = useState<number>(0);
   const [cRatio, setCRatio] = useState(0);
   const [reserveHoneyState, setReserveHoneyState] = useState(0);
   const [launchAreaWidth, setLaunchAreaWidth] = useState<number>(840);
@@ -250,15 +250,12 @@ const Markets: NextPage = () => {
 
   // if there are open positions for the user -> set the open positions
   useEffect(() => {
-    if (loading === false) {
-      if (collateralNFTPositions) {
-        setUserOpenPositions(collateralNFTPositions);
-        // setHasNFTDeposited(true);
-      } else if (!collateralNFTPositions) {
-        setUserOpenPositions([]);
-      }
+    if (collateralNFTPositions && collateralNFTPositions.length) {
+      setUserOpenPositions(collateralNFTPositions);
+    } else {
+      setUserOpenPositions([]);
     }
-  }, [loading]);
+  }, [collateralNFTPositions]);
   // function is setup to handle an array for all markets and return based on specific market by verified creator
   async function handlePositions(
     verifiedCreator: string,
@@ -278,7 +275,6 @@ const Markets: NextPage = () => {
         return Promise.all(
           marketCollections.map(async collection => {
             if (collection.id == '') return collection;
-
             await populateMarketData(
               'BORROW',
               collection,
