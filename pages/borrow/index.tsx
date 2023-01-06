@@ -902,12 +902,10 @@ const Markets: NextPage = () => {
       const borrowTokenMint = new PublicKey(
         'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
       );
-      // 'So11111111111111111111111111111111111111112';
-      // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
       toast.processing();
       const tx = await borrowAndRefresh(
         honeyUser,
-        new BN(val * BONK_DECIMAL_DIVIDER),
+        val * BONK_DECIMAL_DIVIDER,
         borrowTokenMint,
         honeyReserves
       );
