@@ -206,29 +206,29 @@ const Markets: NextPage = () => {
     setFetchedSolPrice(slPrice);
   }
 
-  const [marketData, setMarketData] = useState<MarketBundle[]>([]);
+  // const [marketData, setMarketData] = useState<MarketBundle[]>([]);
 
-  async function fetchAllMarketData(marketIDs: string[]) {
-    const data = await fetchAllMarkets(
-      sdkConfig.saberHqConnection,
-      sdkConfig.sdkWallet,
-      sdkConfig.honeyId,
-      marketIDs,
-      false
-    );
-    setMarketData(data as unknown as MarketBundle[]);
-  }
+  // async function fetchAllMarketData(marketIDs: string[]) {
+  //   const data = await fetchAllMarkets(
+  //     sdkConfig.saberHqConnection,
+  //     sdkConfig.sdkWallet,
+  //     sdkConfig.honeyId,
+  //     marketIDs,
+  //     false
+  //   );
+  //   setMarketData(data as unknown as MarketBundle[]);
+  // }
 
-  useEffect(() => {
-    if (
-      sdkConfig.saberHqConnection &&
-      sdkConfig.sdkWallet &&
-      sdkConfig.honeyId
-    ) {
-      const marketIDs = marketCollections.map(market => market.id);
-      fetchAllMarketData(marketIDs);
-    }
-  }, [sdkConfig.saberHqConnection, sdkConfig.sdkWallet]);
+  // useEffect(() => {
+  //   if (
+  //     sdkConfig.saberHqConnection &&
+  //     sdkConfig.sdkWallet &&
+  //     sdkConfig.honeyId
+  //   ) {
+  //     const marketIDs = marketCollections.map(market => market.id);
+  //     fetchAllMarketData(marketIDs);
+  //   }
+  // }, [sdkConfig.saberHqConnection, sdkConfig.sdkWallet]);
 
   /**
    * @description sets state of marketValue by parsing lamports outstanding debt amount to SOL
@@ -279,77 +279,39 @@ const Markets: NextPage = () => {
           marketCollections.map(async collection => {
             if (collection.id == '') return collection;
 
-            if (marketData.length) {
-              collection.marketData = marketData.filter(
-                marketObject =>
-                  marketObject.market.address.toString() === collection.id
-              );
-              const honeyUser = collection.marketData[0].user;
-              const honeyMarket = collection.marketData[0].market;
-              const honeyClient = collection.marketData[0].client;
-              const parsedReserves = collection.marketData[0].reserves[0].data;
+            await populateMarketData(
+              'BORROW',
+              collection,
+              sdkConfig.saberHqConnection,
+              sdkConfig.sdkWallet,
+              currentMarketId,
+              false,
+              userOpenPositions === undefined ? [] : userOpenPositions,
+              true,
+              honeyClient,
+              honeyMarket,
+              honeyUser,
+              parsedReserves
+            );
 
-              await populateMarketData(
-                'BORROW',
-                collection,
-                sdkConfig.saberHqConnection,
-                sdkConfig.sdkWallet,
-                currentMarketId,
-                false,
-                collection.marketData[0].positions,
-                true,
-                honeyClient,
-                honeyMarket,
-                honeyUser,
-                parsedReserves
-              );
+            collection.positions = await handlePositions(
+              collection.verifiedCreator,
+              userOpenPositions
+            );
 
-              collection.positions = await handlePositions(
-                collection.verifiedCreator,
-                userOpenPositions
-              );
-              collection.rate =
-                (await getInterestRate(
-                  collection.utilizationRate,
-                  collection.id
-                )) || 0;
+            collection.rate =
+              (await getInterestRate(
+                collection.utilizationRate,
+                collection.id
+              )) || 0;
 
-              if (currentMarketId === collection.id)
-                setActiveInterestRate(collection.rate);
-              if (currentMarketId === collection.id) {
-                setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
-                setUserAllowance(collection.allowance);
-                setUserDebt(collection.userDebt ? collection.userDebt : 0);
-                setLoanToValue(Number(collection.ltv));
-              }
+            setActiveInterestRate(collection.rate);
+            setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+            setUserAllowance(collection.allowance);
+            setUserDebt(collection.userDebt ? collection.userDebt : 0);
+            setLoanToValue(Number(collection.ltv));
 
-              return collection;
-            } else {
-              await populateMarketData(
-                'BORROW',
-                collection,
-                sdkConfig.saberHqConnection,
-                sdkConfig.sdkWallet,
-                currentMarketId,
-                false,
-                [],
-                false
-              );
-
-              collection.positions = await handlePositions(
-                collection.verifiedCreator,
-                userOpenPositions
-              );
-              collection.rate =
-                (await getInterestRate(
-                  collection.utilizationRate,
-                  collection.id
-                )) || 0;
-
-              if (currentMarketId === collection.id)
-                setActiveInterestRate(collection.rate);
-              return collection;
-            }
+            return collection;
           })
         );
       }
@@ -359,7 +321,14 @@ const Markets: NextPage = () => {
         setTableDataFiltered(result);
       });
     }
-  }, [currentMarketId, marketData, reserveHoneyState, userOpenPositions]);
+  }, [
+    reserveHoneyState,
+    userOpenPositions,
+    honeyUser,
+    honeyClient,
+    honeyMarket,
+    parsedReserves
+  ]);
 
   const showMobileSidebar = () => {
     setShowMobileSidebar(true);
