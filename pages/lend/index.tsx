@@ -320,8 +320,6 @@ const Lend: NextPage = () => {
       const depositTokenMint = new PublicKey(
         'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
       );
-      // 'So11111111111111111111111111111111111111112';
-      // 'DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9'
 
       toast.processing();
       const tx = await withdraw(
@@ -424,14 +422,11 @@ const Lend: NextPage = () => {
               )) || 0) * collection.utilizationRate;
 
             collection.stats = getPositionData();
-            if (currentMarketId == collection.id) {
-              setActiveMarketSupplied(collection.value);
-              setActiveMarketAvailable(collection.available);
-              setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
-              collection.userTotalDeposits
-                ? setUserTotalDeposits(collection.userTotalDeposits)
-                : setUserTotalDeposits(0);
-            }
+            setActiveMarketSupplied(collection.value);
+            setActiveMarketAvailable(collection.available);
+            setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+            console.log('user total deposits', userTotalDeposits);
+            setUserTotalDeposits(collection.userTotalDeposits ?? 0);
 
             return collection;
           })
@@ -448,7 +443,11 @@ const Lend: NextPage = () => {
     sdkConfig.sdkWallet,
     currentMarketId,
     honeyReservesChange,
-    userOpenPositions
+    userOpenPositions,
+    honeyUser,
+    honeyMarket,
+    honeyClient,
+    parsedReserves
   ]);
 
   const onSearch = (searchTerm: string): LendTableRow[] => {

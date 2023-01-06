@@ -37,8 +37,6 @@ const WithdrawForm = (props: WithdrawFormProps) => {
   const [valueSOL, setValueSOL] = useState<number>(0);
   const [sliderValue, setSliderValue] = useState(0);
   const { toast, ToastComponent } = useToast();
-
-  const maxValue = userTotalDeposits;
   const solPrice = fetchedSolPrice;
 
   // Put your validators here
@@ -79,6 +77,7 @@ const WithdrawForm = (props: WithdrawFormProps) => {
   };
 
   const handleWithdraw = async () => {
+    console.log('this is val sol', valueSOL);
     executeWithdraw(valueSOL, toast);
     handleSliderChange(0);
   };
@@ -160,13 +159,13 @@ const WithdrawForm = (props: WithdrawFormProps) => {
             secondInputValue={valueUSD}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
-            maxValue={maxValue}
+            maxValue={userTotalDeposits * BONK_DECIMAL_DIVIDER}
           />
         </div>
 
         <HoneySlider
           currentValue={sliderValue}
-          maxValue={99999}
+          maxValue={userTotalDeposits * BONK_DECIMAL_DIVIDER}
           minAvailableValue={0}
           // maxSafePosition={0.4}
           // maxAvailablePosition={maxValue} // TODO: should be capped by available liquidity
