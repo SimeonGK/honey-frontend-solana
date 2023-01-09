@@ -142,6 +142,8 @@ export async function fetchAllowance(
   honeyUser: HoneyUser,
   marketReserveInfo: any
 ) {
+  if (nftPrice === 0) return 0;
+
   const nftCollateralValue = nftPrice * collateralNFTPositions;
   let userLoans = 0;
 

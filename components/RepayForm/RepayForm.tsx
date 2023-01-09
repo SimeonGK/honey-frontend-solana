@@ -189,7 +189,7 @@ const RepayForm = (props: RepayProps) => {
           </div>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(Number(frd(userAllowance)))}
+              value={fsn(userAllowance)}
               title={
                 <span className={hAlign}>
                   Allowance <div className={questionIcon} />
