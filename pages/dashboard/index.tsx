@@ -23,7 +23,9 @@ import {
   useBorrowPositions,
   useHoney,
   useMarket,
-  withdrawNFT
+  withdrawNFT,
+  getInterestRate,
+  calcNFT
 } from '@honey-finance/sdk';
 import { PublicKey } from '@solana/web3.js';
 import { BnToDecimal, ConfigureSDK } from '../../helpers/loanHelpers';
@@ -32,11 +34,7 @@ import { useConnectedWallet } from '@saberhq/use-solana';
 
 import BN from 'bn.js';
 import { RoundHalfDown } from '../../helpers/utils';
-import {
-  calcNFT,
-  fetchSolPrice,
-  getInterestRate
-} from '../../helpers/loanHelpers/userCollection';
+import { fetchSolPrice } from '../../helpers/loanHelpers/userCollection';
 import { ToastProps } from '../../hooks/useToast';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { generateMockHistoryData } from '../../helpers/chartUtils';
@@ -378,9 +376,8 @@ const Dashboard: NextPage = () => {
   async function calculateNFTPrice() {
     if (marketReserveInfo && parsedReserves && honeyMarket) {
       let nftPrice = await calcNFT(
-        marketReserveInfo,
         parsedReserves[0],
-        honeyMarket,
+        honeyMarket.market,
         sdkConfig.saberHqConnection
       );
       setNftPrice(Number(nftPrice));
@@ -465,11 +462,6 @@ const Dashboard: NextPage = () => {
 
   async function calculateInterestRate(utilizationRate: number) {
     // TODO: update market ID param to be dynamic before going live with the dashboard page
-    let interestRate = await getInterestRate(
-      utilizationRate,
-      HONEY_GENESIS_MARKET_ID
-    );
-    if (interestRate) setCalculatedInterestRate(interestRate);
   }
 
   useEffect(() => {
