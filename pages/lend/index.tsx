@@ -32,7 +32,10 @@ import {
   fetchAllMarkets,
   MarketBundle,
   waitForConfirmation,
-  useBorrowPositions
+  useBorrowPositions,
+  getInterestRate,
+  calcNFT,
+  ReserveConfigStruct
 } from '@honey-finance/sdk';
 import {
   BnToDecimal,
@@ -46,8 +49,6 @@ import {
 } from '@solana/web3.js';
 import BN from 'bn.js';
 import {
-  calcNFT,
-  getInterestRate,
   fetchSolPrice,
   populateMarketData
 } from 'helpers/loanHelpers/userCollection';
@@ -62,7 +63,7 @@ import { HONEY_GENESIS_MARKET_ID } from '../../helpers/marketHelpers/index';
 import { marketCollections, OpenPositions } from '../../helpers/marketHelpers';
 import { generateMockHistoryData } from '../../helpers/chartUtils';
 import { renderMarket, renderMarketImageByName } from 'helpers/marketHelpers';
-import { calculateUserDeposits } from 'helpers/loanHelpers/userCollection';
+
 import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 // TODO: fetch based on config
 const network = 'mainnet-beta';
@@ -174,6 +175,7 @@ const Lend: NextPage = () => {
     sdkConfig.honeyId,
     currentMarketId
   );
+
   // ************* END OF HOOKS *************
 
   //  ************* START FETCH MARKET DATA *************
@@ -269,7 +271,8 @@ const Lend: NextPage = () => {
 
       const tx = await deposit(
         honeyUser,
-        new BN(value * BONK_DECIMAL_DIVIDER),
+        // new BN(value * BONK_DECIMAL_DIVIDER),
+        value * BONK_DECIMAL_DIVIDER,
         depositTokenMint,
         honeyReserves
       );
@@ -324,7 +327,8 @@ const Lend: NextPage = () => {
       toast.processing();
       const tx = await withdraw(
         honeyUser,
-        new BN(value * BONK_DECIMAL_DIVIDER),
+        // new BN(value * BONK_DECIMAL_DIVIDER),
+        value * BONK_DECIMAL_DIVIDER,
         depositTokenMint,
         honeyReserves
       );
@@ -415,11 +419,13 @@ const Lend: NextPage = () => {
               parsedReserves
             );
 
-            collection.rate =
-              ((await getInterestRate(
-                collection.utilizationRate,
-                collection.id
-              )) || 0) * collection.utilizationRate;
+            honeyReserves[0].data?.config
+              ? (collection.rate =
+                  (getInterestRate(
+                    honeyReserves[0].data?.config,
+                    collection.utilizationRate
+                  ) || 0) * collection.utilizationRate)
+              : (collection.rate = 0);
 
             collection.stats = getPositionData();
             if (currentMarketId == collection.id) {
