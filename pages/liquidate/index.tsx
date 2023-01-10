@@ -347,7 +347,7 @@ const Liquidate: NextPage = () => {
           toast.processing();
 
           let transactionOutcome: any = await liquidatorClient.placeBid({
-            bid_limit: new BN(userBid * BONK_DECIMAL_DIVIDER),
+            bid_limit: userBid * BONK_DECIMAL_DIVIDER,
             market: new PublicKey(mrktID),
             bidder: wallet.publicKey,
             bid_mint: NATIVE_MINT
@@ -364,7 +364,7 @@ const Liquidate: NextPage = () => {
 
           toast.processing();
           let transactionOutcome: any = await liquidatorClient.increaseBid({
-            bid_increase: new BN(userBid * BONK_DECIMAL_DIVIDER),
+            bid_increase: userBid * BONK_DECIMAL_DIVIDER,
             market: new PublicKey(mrktID),
             bidder: wallet.publicKey,
             bid_mint: NATIVE_MINT
