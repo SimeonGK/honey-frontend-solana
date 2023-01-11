@@ -274,7 +274,7 @@ const Lend: NextPage = () => {
         // new BN(value * BONK_DECIMAL_DIVIDER),
         value * BONK_DECIMAL_DIVIDER,
         depositTokenMint,
-        honeyReserves
+        marketData[0].reserves
       );
 
       if (tx[0] == 'SUCCESS') {
@@ -330,7 +330,7 @@ const Lend: NextPage = () => {
         // new BN(value * BONK_DECIMAL_DIVIDER),
         value * BONK_DECIMAL_DIVIDER,
         depositTokenMint,
-        honeyReserves
+        marketData[0].reserves
       );
 
       if (tx[0] == 'SUCCESS') {
@@ -398,7 +398,7 @@ const Lend: NextPage = () => {
    * @returns
    */
   useEffect(() => {
-    if (sdkConfig.saberHqConnection) {
+    if (sdkConfig.saberHqConnection && marketData) {
       function getData() {
         return Promise.all(
           marketCollections.map(async collection => {
@@ -419,10 +419,10 @@ const Lend: NextPage = () => {
               parsedReserves
             );
 
-            honeyReserves[0].data?.config
+            marketData[0].reserves[0].data?.config
               ? (collection.rate =
                   (getInterestRate(
-                    honeyReserves[0].data?.config,
+                    marketData[0].reserves[0].data?.config,
                     collection.utilizationRate
                   ) || 0) * collection.utilizationRate)
               : (collection.rate = 0);
@@ -450,6 +450,7 @@ const Lend: NextPage = () => {
   }, [
     sdkConfig.saberHqConnection,
     sdkConfig.sdkWallet,
+    marketData,
     currentMarketId,
     honeyReservesChange,
     userOpenPositions

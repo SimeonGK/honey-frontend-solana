@@ -46,21 +46,13 @@ import {
   MarketBundle,
   waitForConfirmation,
   withdrawNFT,
-  calculateMarketDebt,
-  calculateUserDeposits,
-  fetchAllowanceAndDebt,
   calcNFT,
-  fetchReservePrice,
   getInterestRate,
-  BnToDecimal,
-  BnDivided,
-  ReserveConfigStruct,
-  MarketAccount
+  BnToDecimal
 } from '@honey-finance/sdk';
 import {
   fetchSolPrice,
   populateMarketData,
-  fetchUserDebt,
   fetchLTV,
   decodeReserve
 } from 'helpers/loanHelpers/userCollection';
@@ -141,12 +133,13 @@ const Markets: NextPage = () => {
    * @params  useConnection func. | useConnectedWallet func. | honeyID | marketID
    * @returns honeyUser | honeyReserves - used for interaction regarding the SDK
    */
-  const { honeyClient, honeyUser, honeyReserves, honeyMarket } = useMarket(
+  const { honeyClient, honeyUser, honeyMarket } = useMarket(
     sdkConfig.saberHqConnection,
     sdkConfig.sdkWallet,
     sdkConfig.honeyId,
     currentMarketId
   );
+
   /**
    * @description fetches collateral nft positions | refresh positions (func) from SDK
    * @params useConnection func. | useConnectedWallet func. | honeyID | marketID
@@ -156,7 +149,6 @@ const Markets: NextPage = () => {
     loading,
     collateralNFTPositions,
     loanPositions,
-    // fungibleCollateralPosition,
     refreshPositions,
     error
   } = useBorrowPositions(
@@ -293,7 +285,7 @@ const Markets: NextPage = () => {
               honeyClient,
               honeyMarket,
               honeyUser,
-              parsedReserves
+              marketData[0].reserves[0].data
             );
 
             collection.positions = await handlePositions(
@@ -301,10 +293,15 @@ const Markets: NextPage = () => {
               userOpenPositions
             );
 
-            if (honeyReserves && honeyReserves[0] && honeyReserves[0].data) {
+            if (
+              marketData &&
+              marketData[0] &&
+              marketData[0].reserves &&
+              marketData[0].reserves[0].data
+            ) {
               collection.rate =
                 getInterestRate(
-                  honeyReserves[0].data.config,
+                  marketData[0].reserves[0].data?.config,
                   collection.utilizationRate
                 ) * collection.utilizationRate;
             }
@@ -907,7 +904,7 @@ const Markets: NextPage = () => {
         honeyUser,
         new BN(val * BONK_DECIMAL_DIVIDER),
         borrowTokenMint,
-        honeyReserves
+        marketData[0].reserves
       );
 
       if (tx[0] == 'SUCCESS') {
@@ -951,7 +948,7 @@ const Markets: NextPage = () => {
         honeyUser,
         new BN(val * BONK_DECIMAL_DIVIDER),
         repayTokenMint,
-        honeyReserves
+        marketData[0].reserves
       );
 
       if (tx[0] == 'SUCCESS') {
