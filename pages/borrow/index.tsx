@@ -236,6 +236,24 @@ const Markets: NextPage = () => {
     }
   }, [sdkConfig.saberHqConnection, sdkConfig.sdkWallet]);
 
+  /**
+   * @description sets state of marketValue by parsing lamports outstanding debt amount to SOL
+   * @params none, requires parsedReserves
+   * @returns updates marketValue
+   */
+  useEffect(() => {
+    if (parsedReserves && sdkConfig.saberHqConnection) {
+      fetchSolValue(parsedReserves, sdkConfig.saberHqConnection);
+    }
+  }, [parsedReserves]);
+
+  // sets cRatio, liquidationThreshold and calls fetchHelperValues
+  useEffect(() => {
+    if (marketReserveInfo && parsedReserves) {
+      setCRatio(BnToDecimal(marketReserveInfo[0].minCollateralRatio, 15, 5));
+    }
+  }, [marketReserveInfo, parsedReserves]);
+
   // if there are open positions for the user -> set the open positions
   useEffect(() => {
     if (collateralNFTPositions && collateralNFTPositions.length) {
@@ -258,16 +276,11 @@ const Markets: NextPage = () => {
 
   // inits the markets with relevant data
   useEffect(() => {
-    if (sdkConfig.saberHqConnection && marketData) {
+    if (sdkConfig.saberHqConnection) {
       function getData() {
         return Promise.all(
           marketCollections.map(async collection => {
             if (collection.id == '') return collection;
-            // collection.marketData = marketData.map((market) => {
-            //   console.log('this ')
-            // })
-
-            marketData.map(market => console.log('market', market));
             await populateMarketData(
               'BORROW',
               collection,
@@ -312,7 +325,15 @@ const Markets: NextPage = () => {
         setTableDataFiltered(result);
       });
     }
-  }, [marketData, currentMarketId]);
+  }, [
+    reserveHoneyState,
+    userOpenPositions,
+    honeyUser,
+    honeyClient,
+    honeyMarket,
+    parsedReserves,
+    NFTs
+  ]);
 
   const showMobileSidebar = () => {
     setShowMobileSidebar(true);

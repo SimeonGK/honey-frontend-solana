@@ -313,7 +313,7 @@ async function handleFormatMarket(
     const ltv = await fetchLTV(userDebt, nftPrice ? nftPrice : 0);
 
     const tvl = nftPrice ? await fetchTVL(nftPrice, obligations) : 0;
-    return collection;
+
     const userTotalDeposits = await calculateUserDeposits(
       honeyMarket.reserves,
       honeyUser,
