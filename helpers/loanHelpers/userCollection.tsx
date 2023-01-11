@@ -281,8 +281,10 @@ async function handleFormatMarket(
   // calculates total market debt, total market deposits, decodes parsed reserve
   const { totalMarketDebt, totalMarketDeposits, parsedReserve } =
     await decodeReserve(honeyMarket, honeyClient, parsedReserves);
+
   // calculates total value of a market
   const totalMarketValue = totalMarketDeposits + totalMarketDebt;
+
   // calculates nft price of a market
   if (parsedReserve !== undefined) {
     const nftPrice = await calcNFT(
@@ -293,6 +295,7 @@ async function handleFormatMarket(
     );
 
     let allowance;
+    collection.nftPrice = nftPrice;
 
     // fetch allowance
     if (nftPrice !== 0) {
@@ -306,8 +309,11 @@ async function handleFormatMarket(
     }
 
     const userDebt = await fetchUserDebt(honeyUser, honeyMarket.reserves);
+
     const ltv = await fetchLTV(userDebt, nftPrice ? nftPrice : 0);
+
     const tvl = nftPrice ? await fetchTVL(nftPrice, obligations) : 0;
+    return collection;
     const userTotalDeposits = await calculateUserDeposits(
       honeyMarket.reserves,
       honeyUser,
