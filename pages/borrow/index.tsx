@@ -298,6 +298,9 @@ const Markets: NextPage = () => {
                   marketObject.market.address.toString() === collection.id
               );
 
+              console.log('@@-- collection', collection.marketData);
+              return collection;
+
               const honeyUser = collection.marketData[0].user;
               const honeyMarket = collection.marketData[0].market;
               const honeyClient = collection.marketData[0].client;

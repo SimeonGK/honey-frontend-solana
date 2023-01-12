@@ -309,6 +309,7 @@ async function handleFormatMarket(
   // calculates total market debt, total market deposits, decodes parsed reserve
   const { totalMarketDebt, totalMarketDeposits, parsedReserve } =
     await decodeReserve(honeyMarket, honeyClient, parsedReserves);
+
   // calculates total value of a market
   const totalMarketValue = totalMarketDeposits + totalMarketDebt;
 
@@ -320,24 +321,21 @@ async function handleFormatMarket(
       honeyMarket.market,
       connection
     );
+
     collection.nftPrice = nftPrice;
 
     await honeyUser.refresh();
 
-    const { sumOfTotalDebt } = await fetchAllowanceAndDebt(
+    const { sumOfAllowance, sumOfTotalDebt } = await fetchAllowanceAndDebt(
       nftPrice,
       obligations.length,
       honeyUser,
       honeyMarket.reserves[0],
       parsedReserve
     );
-    let nftCollateralValue = new BN(nftPrice * obligations.length);
 
-    let allowance = nftCollateralValue
-      .mul(new BN(honeyMarket.reserves[0].minCollateralRatio).div(new BN(1e15)))
-      .div(new BN(100))
-      .mul(new BN(60))
-      .sub(sumOfTotalDebt);
+    console.log('@@-- sum of all', sumOfAllowance.toString());
+    console.log('@@-- sumOfTotalDebt', sumOfTotalDebt.toString());
 
     const ltv = sumOfTotalDebt.div(new BN(nftPrice));
 
@@ -351,7 +349,7 @@ async function handleFormatMarket(
     // if request comes from liquidation page we need the collection object to be different
     if (origin === 'LIQUIDATIONS') {
       collection.name;
-      collection.allowance = allowance;
+      collection.allowance = sumOfAllowance;
       collection.userDebt = sumOfTotalDebt;
       collection.available = totalMarketDeposits;
       collection.value = totalMarketValue;
@@ -391,7 +389,7 @@ async function handleFormatMarket(
 
       // request comes from borrow or lend - same base collection object
     } else if (origin === 'BORROW') {
-      collection.allowance = allowance;
+      collection.allowance = sumOfAllowance;
       collection.userDebt = sumOfTotalDebt;
       collection.ltv = ltv;
       collection.available = totalMarketDeposits * BONK_DECIMAL_DIVIDER;
@@ -406,7 +404,7 @@ async function handleFormatMarket(
       collection.name;
       return collection;
     } else if (origin === 'LEND') {
-      collection.allowance = allowance;
+      collection.allowance = sumOfAllowance;
       collection.userDebt = sumOfTotalDebt;
       collection.ltv = ltv;
       collection.available = totalMarketDeposits * BONK_DECIMAL_DIVIDER;

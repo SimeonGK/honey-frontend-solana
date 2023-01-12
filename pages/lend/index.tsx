@@ -271,8 +271,7 @@ const Lend: NextPage = () => {
 
       const tx = await deposit(
         honeyUser,
-        // new BN(value * BONK_DECIMAL_DIVIDER),
-        value * BONK_DECIMAL_DIVIDER,
+        new BN(value * BONK_DECIMAL_DIVIDER),
         depositTokenMint,
         marketData[0].reserves
       );
@@ -327,8 +326,7 @@ const Lend: NextPage = () => {
       toast.processing();
       const tx = await withdraw(
         honeyUser,
-        // new BN(value * BONK_DECIMAL_DIVIDER),
-        value * BONK_DECIMAL_DIVIDER,
+        new BN(value * BONK_DECIMAL_DIVIDER),
         depositTokenMint,
         marketData[0].reserves
       );
@@ -412,7 +410,7 @@ const Lend: NextPage = () => {
               const honeyUser = collection.marketData[0].user;
               const honeyMarket = collection.marketData[0].market;
               const honeyClient = collection.marketData[0].client;
-              const parsedReserves = collection.marketData[0].reserves[0].data;
+              const parsedReserves = collection.marketData[0].reserves[0];
 
               await populateMarketData(
                 'BORROW',
