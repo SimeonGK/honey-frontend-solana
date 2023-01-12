@@ -57,7 +57,8 @@ import {
   BnDivided,
   ReserveConfigStruct,
   MarketAccount,
-  fetchAllowanceAndDebt
+  fetchAllowanceAndDebt,
+  CachedReserveInfo
 } from '@honey-finance/sdk';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { formatNumber } from '../../helpers/format';
@@ -102,10 +103,36 @@ export async function fetchUserDebt(
 
   return RoundHalfUp(totalDebt);
 }
+// // old func. that calculates user allowance
+export async function fetchAllowance(
+  nftPrice: number,
+  collateralNFTPositions: number,
+  honeyUser: HoneyUser,
+  marketReserveInfo: CachedReserveInfo[]
+) {
+  if (nftPrice === 0) return 0;
+
+  const nftCollateralValue = nftPrice * collateralNFTPositions;
+  let userLoans = 0;
+
+  if (honeyUser?.loans().length > 0) {
+    if (honeyUser?.loans().length > 0 && marketReserveInfo) {
+      userLoans =
+        (marketReserveInfo[0].loanNoteExchangeRate
+          .mul(honeyUser?.loans()[0]?.amount)
+          .div(new BN(10 ** 15))
+          .toNumber() *
+          1.002) /
+        1e5;
+    }
+  }
+
+  return RoundHalfDown(nftCollateralValue * MAX_LTV - userLoans, 4);
+}
 // filters out zero debt obligations and multiplies outstanding obl. by nft price
-export async function fetchTVL(nftPrice: number, obligations: any) {
+export async function fetchTVL(obligations: any) {
   if (!obligations.length) return 0;
-  return nftPrice * obligations.filter((obl: any) => obl.debt !== 0).length;
+  return obligations.filter((obl: any) => obl.debt !== 0).length;
 }
 
 /**
@@ -266,6 +293,7 @@ export async function decodeReserve(
     };
   }
 }
+
 async function handleFormatMarket(
   origin: string,
   collection: any,
@@ -281,17 +309,9 @@ async function handleFormatMarket(
   // calculates total market debt, total market deposits, decodes parsed reserve
   const { totalMarketDebt, totalMarketDeposits, parsedReserve } =
     await decodeReserve(honeyMarket, honeyClient, parsedReserves);
-
-  console.log(
-    '@@-- xyz: market debt: market deposits: parsedReserve',
-    totalMarketDebt,
-    totalMarketDeposits,
-    parsedReserve
-  );
-
   // calculates total value of a market
   const totalMarketValue = totalMarketDeposits + totalMarketDebt;
-  console.log('@@-- xyz: total market val', totalMarketValue);
+
   // calculates nft price of a market
   if (parsedReserve !== undefined) {
     const nftPrice = await calcNFT(
@@ -301,43 +321,42 @@ async function handleFormatMarket(
       connection
     );
     collection.nftPrice = nftPrice;
-    console.log('@@-- xyz: nft price', nftPrice);
-    console.log('@@-- xyz: obligations', obligations);
 
-    const { sumOfAllowance, sumOfTotalDebt } = await fetchAllowanceAndDebt(
+    await honeyUser.refresh();
+
+    const { sumOfTotalDebt } = await fetchAllowanceAndDebt(
       nftPrice,
       obligations.length,
       honeyUser,
       honeyMarket.reserves[0],
       parsedReserve
     );
-    console.log('@@-- xyz: allowance', sumOfAllowance.toString());
-    console.log('@@-- xyz: userDebt', sumOfTotalDebt.toString());
+    let nftCollateralValue = new BN(nftPrice * obligations.length);
 
-    // const userDebt = await fetchUserDebt(honeyUser, honeyMarket.reserves);
-    // console.log('@@-- xyz: userdebt', userDebt);
-    const ltv = await fetchLTV(
-      sumOfTotalDebt.toNumber(),
-      nftPrice ? nftPrice : 0
-    );
-    console.log('@@-- xyz: ltv', ltv);
-    const tvl = nftPrice ? await fetchTVL(nftPrice, obligations) : 0;
-    console.log('@@-- xyz: tvl', tvl);
+    let allowance = nftCollateralValue
+      .mul(new BN(honeyMarket.reserves[0].minCollateralRatio).div(new BN(1e15)))
+      .div(new BN(100))
+      .mul(new BN(60))
+      .sub(sumOfTotalDebt);
+
+    const ltv = sumOfTotalDebt.div(new BN(nftPrice));
+
+    const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
     const userTotalDeposits = await calculateUserDeposits(
       honeyMarket.reserves,
       honeyUser,
       parsedReserve
     );
-    console.log('@@-- xyz: user tot deposits', userTotalDeposits);
 
     // if request comes from liquidation page we need the collection object to be different
     if (origin === 'LIQUIDATIONS') {
       collection.name;
-      collection.allowance = sumOfAllowance;
+      collection.allowance = allowance;
       collection.userDebt = sumOfTotalDebt;
       collection.available = totalMarketDeposits;
       collection.value = totalMarketValue;
       collection.connection = connection;
+      // TODO: fix util rate based off object coming in
       collection.utilizationRate = Number(
         f(totalMarketDebt / (totalMarketDeposits + totalMarketDebt))
       );
@@ -372,13 +391,14 @@ async function handleFormatMarket(
 
       // request comes from borrow or lend - same base collection object
     } else if (origin === 'BORROW') {
-      collection.allowance = sumOfAllowance;
+      collection.allowance = allowance;
       collection.userDebt = sumOfTotalDebt;
       collection.ltv = ltv;
-      collection.available = totalMarketDeposits;
-      collection.value = totalMarketValue;
+      collection.available = totalMarketDeposits * BONK_DECIMAL_DIVIDER;
+      collection.value = totalMarketValue * BONK_DECIMAL_DIVIDER;
       collection.connection = connection;
       collection.nftPrice = nftPrice;
+      // TODO: fix util rate based off object coming in
       collection.utilizationRate = Number(
         f(totalMarketDebt / (totalMarketDeposits + totalMarketDebt))
       );
@@ -386,14 +406,15 @@ async function handleFormatMarket(
       collection.name;
       return collection;
     } else if (origin === 'LEND') {
-      collection.allowance = sumOfAllowance;
+      collection.allowance = allowance;
       collection.userDebt = sumOfTotalDebt;
       collection.ltv = ltv;
-      collection.available = totalMarketDeposits;
-      collection.value = totalMarketValue;
+      collection.available = totalMarketDeposits * BONK_DECIMAL_DIVIDER;
+      collection.value = totalMarketValue * BONK_DECIMAL_DIVIDER;
       collection.connection = connection;
       collection.nftPrice = nftPrice;
       collection.userTotalDeposits = userTotalDeposits;
+      // TODO: fix util rate based off object coming in
       collection.utilizationRate = Number(
         f(totalMarketDebt / (totalMarketDeposits + totalMarketDebt))
       );
@@ -447,7 +468,6 @@ export async function populateMarketData(
       parsedReserves
     );
   } else {
-    return collection;
     const provider = new anchor.AnchorProvider(
       connection,
       dummyWallet,

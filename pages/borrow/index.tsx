@@ -792,47 +792,7 @@ const Markets: NextPage = () => {
       </div>
     </div>
   );
-  async function handleUserInteraction() {
-    marketCollections.map(async market => {
-      if (market.id === currentMarketId) {
-        await fetchMarket();
-        await market.user.refresh();
 
-        if (market.marketData) {
-          const honeyUser = market.marketData[0].user;
-          const honeyMarket = market.marketData[0].market;
-          const honeyClient = market.marketData[0].client;
-          const parsedReserves = market.marketData[0].reserves[0].data;
-          if (parsedReserves) {
-            const { totalMarketDebt, totalMarketDeposits, parsedReserve } =
-              await decodeReserve(honeyMarket, honeyClient, parsedReserves);
-            if (parsedReserve !== undefined) {
-              // TODO: validate honeyMarket.conn
-
-              const nftPrice = await calcNFT(
-                parsedReserve,
-                honeyMarket.market,
-                honeyMarket.conn
-              );
-
-              if (nftPrice) {
-                // TODO: call set allowance and set user debt
-
-                const ltv = await fetchLTV(totalMarketDebt, nftPrice);
-
-                if (userDebt) setUserDebt(userDebt);
-
-                setLoanToValue(ltv);
-                reserveHoneyState === 0
-                  ? setReserveHoneyState(1)
-                  : setReserveHoneyState(0);
-              }
-            }
-          }
-        }
-      }
-    });
-  }
   /**
    * @description executes Deposit NFT (SDK helper)
    * @params mint of the NFT | toast | name | verified creator
@@ -961,7 +921,9 @@ const Markets: NextPage = () => {
           confirmationHash
         );
 
-        await handleUserInteraction();
+        reserveHoneyState === 0
+          ? setReserveHoneyState(1)
+          : setReserveHoneyState(0);
 
         toast.success(
           'Borrow success',
@@ -972,7 +934,7 @@ const Markets: NextPage = () => {
       }
     } catch (error) {
       console.log('@@-- error', error);
-      return toast.error('An error occurred');
+      return toast.error('An error occurred', error);
     }
   }
 
@@ -1005,7 +967,9 @@ const Markets: NextPage = () => {
           confirmationHash
         );
 
-        await handleUserInteraction();
+        reserveHoneyState === 0
+          ? setReserveHoneyState(1)
+          : setReserveHoneyState(0);
 
         toast.success(
           'Repay success',

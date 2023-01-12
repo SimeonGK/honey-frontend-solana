@@ -241,15 +241,15 @@ const Lend: NextPage = () => {
 
   //  ************* START FETCH CURRENT SOL PRICE *************
   // fetches the current sol price
-  async function fetchSolValue(reserves: any, connection: any) {
-    const slPrice = await fetchSolPrice(reserves, connection);
-    setFetchedSolPrice(slPrice);
-  }
+  // async function fetchSolValue(reserves: any, connection: any) {
+  //   const slPrice = await fetchSolPrice(reserves, connection);
+  //   setFetchedSolPrice(slPrice);
+  // }
 
-  useEffect(() => {
-    if (parsedReserves && sdkConfig.saberHqConnection)
-      fetchSolValue(parsedReserves, sdkConfig.saberHqConnection);
-  }, [parsedReserves, sdkConfig.saberHqConnection]);
+  // useEffect(() => {
+  //   if (parsedReserves && sdkConfig.saberHqConnection)
+  //     fetchSolValue(parsedReserves, sdkConfig.saberHqConnection);
+  // }, [parsedReserves, sdkConfig.saberHqConnection]);
   //  ************* END FETCH CURRENT SOL PRICE *************
 
   /**
@@ -403,38 +403,66 @@ const Lend: NextPage = () => {
         return Promise.all(
           marketCollections.map(async collection => {
             if (collection.id == '') return collection;
+            if (marketData.length) {
+              collection.marketData = marketData.filter(
+                marketObject =>
+                  marketObject.market.address.toString() === collection.id
+              );
 
-            await populateMarketData(
-              'LEND',
-              collection,
-              sdkConfig.saberHqConnection,
-              sdkConfig.sdkWallet,
-              currentMarketId,
-              false,
-              userOpenPositions === undefined ? [] : userOpenPositions,
-              true,
-              honeyClient,
-              honeyMarket,
-              honeyUser,
-              parsedReserves
-            );
+              const honeyUser = collection.marketData[0].user;
+              const honeyMarket = collection.marketData[0].market;
+              const honeyClient = collection.marketData[0].client;
+              const parsedReserves = collection.marketData[0].reserves[0].data;
 
-            marketData[0].reserves[0].data?.config
-              ? (collection.rate =
-                  (getInterestRate(
-                    marketData[0].reserves[0].data?.config,
+              await populateMarketData(
+                'BORROW',
+                collection,
+                sdkConfig.saberHqConnection,
+                sdkConfig.sdkWallet,
+                currentMarketId,
+                false,
+                userOpenPositions === undefined ? [] : userOpenPositions,
+                true,
+                honeyClient,
+                honeyMarket,
+                honeyUser,
+                parsedReserves
+              );
+
+              if (parsedReserves) {
+                collection.rate =
+                  getInterestRate(
+                    parsedReserves.config,
                     collection.utilizationRate
-                  ) || 0) * collection.utilizationRate)
-              : (collection.rate = 0);
+                  ) * collection.utilizationRate;
+              }
 
-            collection.stats = getPositionData();
-            if (currentMarketId == collection.id) {
-              setActiveMarketSupplied(collection.value);
-              setActiveMarketAvailable(collection.available);
-              setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
-              collection.userTotalDeposits
-                ? setUserTotalDeposits(collection.userTotalDeposits)
-                : setUserTotalDeposits(0);
+              collection.stats = getPositionData();
+              if (currentMarketId == collection.id) {
+                setActiveMarketSupplied(collection.value);
+                setActiveMarketAvailable(collection.available);
+                setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+                collection.userTotalDeposits
+                  ? setUserTotalDeposits(collection.userTotalDeposits)
+                  : setUserTotalDeposits(0);
+              }
+
+              return collection;
+            } else {
+              await populateMarketData(
+                'LEND',
+                collection,
+                sdkConfig.saberHqConnection,
+                sdkConfig.sdkWallet,
+                currentMarketId,
+                false,
+                userOpenPositions === undefined ? [] : userOpenPositions,
+                true,
+                honeyClient,
+                honeyMarket,
+                honeyUser,
+                parsedReserves
+              );
             }
 
             return collection;
@@ -580,11 +608,7 @@ const Lend: NextPage = () => {
         dataIndex: 'value',
         sorter: (a, b) => a.value - b.value,
         render: (value: number, market: any) => {
-          return (
-            <div className={style.valueCell}>
-              {fsn(value * BONK_DECIMAL_DIVIDER)}
-            </div>
-          );
+          return <div className={style.valueCell}>{fsn(value)}</div>;
         }
       },
       {
@@ -607,11 +631,7 @@ const Lend: NextPage = () => {
         dataIndex: 'available',
         sorter: (a, b) => a.available - b.available,
         render: (available: number, market: any) => {
-          return (
-            <div className={style.availableCell}>
-              {fsn(available * BONK_DECIMAL_DIVIDER)}
-            </div>
-          );
+          return <div className={style.availableCell}>{fsn(available)}</div>;
         }
       },
       {
@@ -674,12 +694,8 @@ const Lend: NextPage = () => {
                 <div className={c(style.rateCell, style.lendRate)}>
                   {fp(row.rate)}
                 </div>
-                <div className={style.valueCell}>
-                  {fsn(row.value * BONK_DECIMAL_DIVIDER)}
-                </div>
-                <div className={style.availableCell}>
-                  {fsn(row.available * BONK_DECIMAL_DIVIDER)}
-                </div>
+                <div className={style.valueCell}>{fsn(row.value)}</div>
+                <div className={style.availableCell}>{fsn(row.available)}</div>
               </HoneyTableRow>
             </>
           );
