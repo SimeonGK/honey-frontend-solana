@@ -562,10 +562,10 @@
   dependencies:
     client-only "^0.0.1"
 
-"@honey-finance/sdk@^1.1.30":
-  version "1.1.30"
-  resolved "https://registry.yarnpkg.com/@honey-finance/sdk/-/sdk-1.1.30.tgz#91f58cfc074d54ddc1f03c03db1e6b26dde1f836"
-  integrity sha512-E2KmDCe0bo/s2y/TexIFtL6cCKdsUdDrgQcd/pGXl9JZLVF79qugFTIebRWbWsQfiuoUcMdwz2Cl4cmPiE+FMw==
+"@honey-finance/sdk@^1.1.32":
+  version "1.1.32"
+  resolved "https://registry.yarnpkg.com/@honey-finance/sdk/-/sdk-1.1.32.tgz#ff677727b3252b57a12fe63d150056ed359bfc40"
+  integrity sha512-yep1ymAi25VBXoheV3ieSAPdYDsA9/PfFf7ToqxIlJ1wGXyrLVIlBPZqdyOUkKwUSgi6lY0eEXqIyv6ewMqQfg==
   dependencies:
     "@metaplex-foundation/mpl-token-metadata" "^1.2.0"
     "@project-serum/anchor" "^0.25.0"
