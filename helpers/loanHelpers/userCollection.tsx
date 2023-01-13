@@ -136,26 +136,6 @@ export async function fetchTVL(obligations: any) {
 }
 
 /**
- * @description fetches the sol price from switchboard
- * @params marketreserve | parsedreserve | honeymarket | connection
- * @returns the current sol price
- */
-export async function fetchReservePrice(parsedReserves: any, connection: any) {
-  if (parsedReserves && connection) {
-    try {
-      let reservePrice = await getOraclePrice(
-        network === 'devnet' ? 'devnet' : 'mainnet-beta',
-        connection,
-        parsedReserves[0].switchboardPriceAggregator
-      );
-      return reservePrice;
-    } catch (error) {
-      throw error;
-    }
-  }
-}
-
-/**
  * @description pollutes the chart on lend with dummy historic rates
  * @params none
  * @returns chart data
