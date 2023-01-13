@@ -29,7 +29,7 @@ const BidForm = (props: BidFormProps) => {
     userBalance,
     highestBiddingValue,
     currentUserBid,
-    fetchedSolPrice,
+    fetchedReservePrice,
     currentMarketId,
     highestBiddingAddress,
     stringyfiedWalletPK,
@@ -47,7 +47,7 @@ const BidForm = (props: BidFormProps) => {
   const { toast, ToastComponent } = useToast();
   // set constants
   const maxValue = 1000;
-  const solPrice = fetchedSolPrice;
+  const reservePrice = fetchedReservePrice;
   // Put your validators here
   const isSubmitButtonDisabled = () => {
     return false;
@@ -56,7 +56,7 @@ const BidForm = (props: BidFormProps) => {
   // change of input - render calculated values
   const handleSliderChange = (value: number) => {
     setSliderValue(value);
-    setValueUSD(value * solPrice);
+    setValueUSD(value * fetchedReservePrice);
     setValueSOL(value);
   };
   // change of input - render calculated values
@@ -68,8 +68,8 @@ const BidForm = (props: BidFormProps) => {
       return;
     }
     setValueUSD(usdValue);
-    setValueSOL(usdValue / solPrice);
-    setSliderValue(usdValue / solPrice);
+    setValueSOL(usdValue / fetchedReservePrice);
+    setSliderValue(usdValue / fetchedReservePrice);
   };
   // change of input - render calculated values
   const handleSolInputChange = (solValue: number | undefined) => {
@@ -80,7 +80,7 @@ const BidForm = (props: BidFormProps) => {
       return;
     }
 
-    setValueUSD(solValue * solPrice);
+    setValueUSD(solValue * fetchedReservePrice);
     setValueSOL(solValue);
     setSliderValue(solValue);
   };
