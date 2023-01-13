@@ -40,12 +40,12 @@ import {
   MarketBundle,
   HoneyMarket,
   HoneyUser,
-  HoneyClient
+  HoneyClient,
+  fetchReservePrice
 } from '@honey-finance/sdk';
 import { ConfigureSDK } from 'helpers/loanHelpers';
 import { useConnectedWallet } from '@saberhq/use-solana';
 import { LAMPORTS_PER_SOL, PublicKey, Connection } from '@solana/web3.js';
-import { calcNFT, fetchSolPrice } from 'helpers/loanHelpers/userCollection';
 import {
   HONEY_PROGRAM_ID,
   HONEY_GENESIS_MARKET_ID,
@@ -82,7 +82,7 @@ const Liquidate: NextPage = () => {
   const [currentUserBid, setCurrentUserBid] = useState<number>();
   const [nftPrice, setNftPrice] = useState<number>(0);
   const [userBalance, setUserBalance] = useState(0);
-  const [fetchedSolPrice, setFetchedSolPrice] = useState(0);
+  const [fetchedReservePrice, setFetchedReservePrice] = useState(0);
   const [isMobileSidebarVisible, setShowMobileSidebar] = useState(false);
   const [biddingArray, setBiddingArray] = useState({});
   const [marketData, setMarketData] = useState<MarketBundle[]>([]);
@@ -253,42 +253,17 @@ const Liquidate: NextPage = () => {
     document.body.classList.remove('disable-scroll');
   };
 
-  //  ************* START CALC. NFT PRICE *************
-  /**
-   * @description
-   * @params
-   * @returns
-   */
-  // async function calculateNFTPrice() {
-  //   if (marketReserveInfo && parsedReserves && honeyMarket) {
-  //     let nftPrice = await calcNFT(
-  //       marketReserveInfo,
-  //       parsedReserves[0],
-  //       honeyMarket,
-  //       sdkConfig.saberHqConnection
-  //     );
-  //     setNftPrice(Number(nftPrice));
-  //   }
-  // }
-  /**
-   * @description
-   * @params
-   * @returns
-   */
-  // useEffect(() => {
-  //   calculateNFTPrice();
-  // }, [marketReserveInfo, parsedReserves]);
-  //  ************* END CALC. NFT PRICE *************
+  //
 
-  //  ************* START FETCH SOL PRICE *************
+  //  ************* START FETCH RESERVE PRICE *************
   /**
    * @description
    * @params
    * @returns
    */
   async function fetchSolValue(reserves: any, connection: any) {
-    const slPrice = await fetchSolPrice(reserves, connection);
-    setFetchedSolPrice(slPrice);
+    const reservePrice = await fetchReservePrice(reserves, connection, false);
+    setFetchedReservePrice(reservePrice);
   }
   /**
    * @description
@@ -826,7 +801,7 @@ const Liquidate: NextPage = () => {
         handleRevokeBid={handleRevokeBid}
         handleIncreaseBid={handleIncreaseBid}
         handlePlaceBid={handlePlaceBid}
-        fetchedSolPrice={fetchedSolPrice}
+        fetchedReservePrice={fetchedReservePrice}
         onCancel={hideMobileSidebar}
         currentMarketId={currentMarketId}
       />

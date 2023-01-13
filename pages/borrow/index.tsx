@@ -50,10 +50,10 @@ import {
   getInterestRate,
   BnToDecimal,
   HoneyUser,
-  HoneyClient
+  HoneyClient,
+  fetchReservePrice
 } from '@honey-finance/sdk';
 import {
-  fetchSolPrice,
   populateMarketData,
   fetchLTV,
   decodeReserve
@@ -168,7 +168,6 @@ const Markets: NextPage = () => {
   const [userAllowance, setUserAllowance] = useState(0);
   const [loanToValue, setLoanToValue] = useState(0);
   const [userDebt, setUserDebt] = useState<number>(0);
-  const [cRatio, setCRatio] = useState(0);
   const [reserveHoneyState, setReserveHoneyState] = useState(0);
   const [launchAreaWidth, setLaunchAreaWidth] = useState<number>(840);
   const [fetchedSolPrice, setFetchedSolPrice] = useState(0);
@@ -204,8 +203,8 @@ const Markets: NextPage = () => {
   // fetches the sol price
   // TODO: create type for reserves and connection
   async function fetchSolValue(reserves: any, connection: any) {
-    const slPrice = await fetchSolPrice(reserves, connection);
-    setFetchedSolPrice(slPrice);
+    const reservePrice = await fetchReservePrice(reserves, connection, false);
+    setFetchedSolPrice(reservePrice);
   }
 
   const [marketData, setMarketData] = useState<MarketBundle[]>([]);
@@ -258,13 +257,6 @@ const Markets: NextPage = () => {
     }
   }, [parsedReserves]);
 
-  // sets cRatio, liquidationThreshold and calls fetchHelperValues
-  useEffect(() => {
-    if (marketReserveInfo && parsedReserves) {
-      setCRatio(BnToDecimal(marketReserveInfo[0].minCollateralRatio, 15, 5));
-    }
-  }, [marketReserveInfo, parsedReserves]);
-
   // if there are open positions for the user -> set the open positions
   useEffect(() => {
     if (collateralNFTPositions && collateralNFTPositions.length) {
@@ -298,10 +290,12 @@ const Markets: NextPage = () => {
                   marketObject.market.address.toString() === collection.id
               );
 
+              console.log('@@-- collection', collection.marketData);
+
               const honeyUser = collection.marketData[0].user;
               const honeyMarket = collection.marketData[0].market;
               const honeyClient = collection.marketData[0].client;
-              const parsedReserves = collection.marketData[0].reserves[0].data;
+              const parsedReserves = collection.marketData[0].reserves[0];
 
               await populateMarketData(
                 'BORROW',

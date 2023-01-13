@@ -48,10 +48,7 @@ import {
   GetProgramAccountsFilter
 } from '@solana/web3.js';
 import BN from 'bn.js';
-import {
-  fetchSolPrice,
-  populateMarketData
-} from 'helpers/loanHelpers/userCollection';
+import { populateMarketData } from 'helpers/loanHelpers/userCollection';
 import { ToastProps } from 'hooks/useToast';
 import { Typography } from 'antd';
 import { pageDescription, pageTitle } from 'styles/common.css';
@@ -220,38 +217,6 @@ const Lend: NextPage = () => {
   }, [walletPK]);
   //  ************* END FETCH USER BALANCE *************
 
-  //  ************* START CALC. USER DEPOSITS *************
-  // calculate user deposits
-  // async function calculateTotalUserDeposits(
-  //   marketReserveInfo: any,
-  //   honeyUser: any
-  // ) {
-  //   const totalUserDeposits = await calculateUserDeposits(
-  //     marketReserveInfo,
-  //     honeyUser
-  //   );
-  //   setUserTotalDeposits(totalUserDeposits);
-  // }
-
-  // useEffect(() => {
-  //   if (marketReserveInfo && honeyUser)
-  //     calculateTotalUserDeposits(marketReserveInfo, honeyUser);
-  // });
-  //  ************* END CALC. USER DEPOSITS *************
-
-  //  ************* START FETCH CURRENT SOL PRICE *************
-  // fetches the current sol price
-  // async function fetchSolValue(reserves: any, connection: any) {
-  //   const slPrice = await fetchSolPrice(reserves, connection);
-  //   setFetchedSolPrice(slPrice);
-  // }
-
-  // useEffect(() => {
-  //   if (parsedReserves && sdkConfig.saberHqConnection)
-  //     fetchSolValue(parsedReserves, sdkConfig.saberHqConnection);
-  // }, [parsedReserves, sdkConfig.saberHqConnection]);
-  //  ************* END FETCH CURRENT SOL PRICE *************
-
   /**
    * @description deposits 1 sol
    * @params optional value from user input; amount of SOL
@@ -266,13 +231,10 @@ const Lend: NextPage = () => {
       const depositTokenMint = new PublicKey(
         'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
       );
-      // 'So11111111111111111111111111111111111111112';
-      // DxXZ4ypvNtqYVVaTmu9GHDfrAZAU3EbFNx1k5FgZvao9
 
       const tx = await deposit(
         honeyUser,
-        // new BN(value * BONK_DECIMAL_DIVIDER),
-        value * BONK_DECIMAL_DIVIDER,
+        new BN(value * BONK_DECIMAL_DIVIDER),
         depositTokenMint,
         marketData[0].reserves
       );
@@ -296,7 +258,6 @@ const Lend: NextPage = () => {
         honeyReservesChange === 0
           ? setHoneyReservesChange(1)
           : setHoneyReservesChange(0);
-        // await honeyUser.refresh();
 
         if (walletPK) await fetchWalletBalance(walletPK);
 
@@ -327,8 +288,7 @@ const Lend: NextPage = () => {
       toast.processing();
       const tx = await withdraw(
         honeyUser,
-        // new BN(value * BONK_DECIMAL_DIVIDER),
-        value * BONK_DECIMAL_DIVIDER,
+        new BN(value * BONK_DECIMAL_DIVIDER),
         depositTokenMint,
         marketData[0].reserves
       );
@@ -412,7 +372,7 @@ const Lend: NextPage = () => {
               const honeyUser = collection.marketData[0].user;
               const honeyMarket = collection.marketData[0].market;
               const honeyClient = collection.marketData[0].client;
-              const parsedReserves = collection.marketData[0].reserves[0].data;
+              const parsedReserves = collection.marketData[0].reserves[0];
 
               await populateMarketData(
                 'BORROW',

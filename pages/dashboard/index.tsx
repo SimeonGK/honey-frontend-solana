@@ -25,7 +25,8 @@ import {
   useMarket,
   withdrawNFT,
   getInterestRate,
-  calcNFT
+  calcNFT,
+  fetchReservePrice
 } from '@honey-finance/sdk';
 import { PublicKey } from '@solana/web3.js';
 import { BnToDecimal, ConfigureSDK } from '../../helpers/loanHelpers';
@@ -34,7 +35,6 @@ import { useConnectedWallet } from '@saberhq/use-solana';
 
 import BN from 'bn.js';
 import { RoundHalfDown } from '../../helpers/utils';
-import { fetchSolPrice } from '../../helpers/loanHelpers/userCollection';
 import { ToastProps } from '../../hooks/useToast';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { generateMockHistoryData } from '../../helpers/chartUtils';
@@ -126,7 +126,7 @@ const Dashboard: NextPage = () => {
   const [dataArray, setDataArray] = useState<NotificationCardProps[]>([]);
 
   const userWalletBalance = 50;
-  const [fetchedSolPrice, setFetchedSolPrice] = useState(0);
+  const [fetchedReservePrice, setFetchedReservePrice] = useState(0);
 
   useEffect(() => {
     if (width >= TABLET_BP) {
@@ -136,30 +136,11 @@ const Dashboard: NextPage = () => {
     }
   }, [width, data]);
 
-  async function fetchSolValue(reserves: any, connection: any) {
-    const slPrice = await fetchSolPrice(reserves, connection);
-    setFetchedSolPrice(slPrice);
-  }
-
   /**
    * @description sets state of marketValue by parsing lamports outstanding debt amount to SOL
    * @params none, requires parsedReserves
    * @returns updates marketValue
    */
-  useEffect(() => {
-    if (parsedReserves && parsedReserves[0].reserveState.totalDeposits) {
-      let totalMarketDeposits = BnToDecimal(
-        parsedReserves[0].reserveState.totalDeposits,
-        9,
-        2
-      );
-      setTotalMarketDeposits(totalMarketDeposits);
-      // setTotalMarketDeposits(parsedReserves[0].reserveState.totalDeposits.div(new BN(10 ** 9)).toNumber());
-      if (parsedReserves && sdkConfig.saberHqConnection) {
-        fetchSolValue(parsedReserves, sdkConfig.saberHqConnection);
-      }
-    }
-  }, [parsedReserves]);
 
   const getUserExposureData = () => {
     if (isMock) {
@@ -273,6 +254,7 @@ const Dashboard: NextPage = () => {
   const [userUSDCBalance, setUserUSDCBalance] = useState(0);
   const [userTotalDeposits, setUserTotalDeposits] = useState(0);
   const [sumOfTotalValue, setSumOfTotalValue] = useState(0);
+  const [fetchedSolPrice, setFetchedSolPrice] = useState(0);
   const [calculatedInterestRate, setCalculatedInterestRate] =
     useState<number>(0);
   const [utilizationRate, setUtilizationRate] = useState(0);
