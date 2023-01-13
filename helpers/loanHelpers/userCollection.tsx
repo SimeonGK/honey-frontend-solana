@@ -140,15 +140,15 @@ export async function fetchTVL(obligations: any) {
  * @params marketreserve | parsedreserve | honeymarket | connection
  * @returns the current sol price
  */
-export async function fetchSolPrice(parsedReserves: any, connection: any) {
+export async function fetchReservePrice(parsedReserves: any, connection: any) {
   if (parsedReserves && connection) {
     try {
-      let solPrice = await getOraclePrice(
+      let reservePrice = await getOraclePrice(
         network === 'devnet' ? 'devnet' : 'mainnet-beta',
         connection,
         parsedReserves[0].switchboardPriceAggregator
       );
-      return solPrice;
+      return reservePrice;
     } catch (error) {
       throw error;
     }
