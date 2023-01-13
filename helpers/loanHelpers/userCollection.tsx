@@ -284,37 +284,41 @@ async function handleFormatMarket(
   honeyClient: HoneyClient,
   honeyMarket: HoneyMarket,
   connection: Connection,
-  parsedReserves: any
+  parsedReserves: TReserve,
+  mData?: any
 ) {
   // calculates total market debt, total market deposits, decodes parsed reserve
   // const { totalMarketDebt, totalMarketDeposits, parsedReserve } =
   //   await decodeReserve(honeyMarket, honeyClient, parsedReserves);
 
-  const totalMarketDebt = 0;
-  const totalMarketDeposits = 0;
-  const parsedReserve: any = [];
+  if (!honeyUser || !honeyMarket) return collection;
+  const totalMarketDebt = mData.outstandingDebt;
+  const totalMarketDeposits = mData.totalDeposits;
+
+  // const parsedReserve: any = [];
   // calculates total value of a market
   const totalMarketValue = totalMarketDeposits + totalMarketDebt;
 
   // calculates nft price of a market
-  if (parsedReserve !== undefined) {
+  if (parsedReserves !== undefined) {
+    console.log('@@-- coming here?');
     const nftPrice = await calcNFT(
       // honeyMarket.reserves,
-      parsedReserve,
+      parsedReserves,
       honeyMarket.market,
       connection
     );
 
-    collection.nftPrice = nftPrice;
+    console.log('@@-- nft price', nftPrice);
 
-    await honeyUser.refresh();
+    collection.nftPrice = nftPrice;
 
     const { sumOfAllowance, sumOfTotalDebt } = await fetchAllowanceAndDebt(
       nftPrice,
       obligations.length,
       honeyUser,
       honeyMarket.cachedReserveInfo[0],
-      parsedReserve
+      parsedReserves
     );
 
     console.log('@@-- sum of all', sumOfAllowance.toString());
@@ -326,7 +330,7 @@ async function handleFormatMarket(
     const userTotalDeposits = await calculateUserDeposits(
       honeyMarket.cachedReserveInfo,
       honeyUser,
-      parsedReserve
+      parsedReserves
     );
 
     // if request comes from liquidation page we need the collection object to be different
@@ -423,7 +427,8 @@ export async function populateMarketData(
   honeyClient?: HoneyClient,
   honeyMarket?: HoneyMarket,
   honeyUser?: HoneyUser,
-  parsedReserves?: any
+  parsedReserves?: TReserve,
+  mData?: any
 ) {
   // create dummy keypair if no wallet is connected to fetch values of the collections regardless of connected wallet
   let dummyWallet = wallet ? wallet : new NodeWallet(new Keypair());
@@ -446,48 +451,8 @@ export async function populateMarketData(
       honeyClient,
       honeyMarket,
       connection,
-      parsedReserves
-    );
-  } else {
-    const provider = new anchor.AnchorProvider(
-      connection,
-      dummyWallet,
-      anchor.AnchorProvider.defaultOptions()
-    );
-
-    const honeyClient = await HoneyClient.connect(
-      provider,
-      collection.id,
-      false
-    );
-    const honeyMarket = await HoneyMarket.load(
-      honeyClient,
-      new PublicKey(collection.id)
-    );
-    // init reserves
-    const honeyReserves: HoneyReserve[] = honeyMarket.cachedReserveInfo.map(
-      reserve => new HoneyReserve(honeyClient, honeyMarket, reserve.reserve)
-    );
-
-    const honeyUser = await HoneyUser.load(
-      honeyClient,
-      honeyMarket,
-      // @ts-ignore
-      dummyWallet,
-      honeyReserves
-    );
-
-    return await handleFormatMarket(
-      origin,
-      collection,
-      currentMarketId,
-      liquidations,
-      obligations,
-      honeyUser,
-      honeyClient,
-      honeyMarket,
-      connection,
-      honeyReserves
+      parsedReserves,
+      mData
     );
   }
 }

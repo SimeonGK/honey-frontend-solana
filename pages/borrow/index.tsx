@@ -221,11 +221,7 @@ const Markets: NextPage = () => {
   }
 
   useEffect(() => {
-    if (
-      sdkConfig.saberHqConnection &&
-      sdkConfig.sdkWallet &&
-      sdkConfig.honeyId
-    ) {
+    if (sdkConfig.saberHqConnection && sdkConfig.honeyId) {
       const marketIDs = marketCollections.map(market => market.id);
       fetchAllMarketData(marketIDs);
     }
@@ -294,8 +290,10 @@ const Markets: NextPage = () => {
               const honeyUser = collection.marketData[0].user;
               const honeyMarket = collection.marketData[0].market;
               const honeyClient = collection.marketData[0].client;
-              const parsedReserves = collection.marketData[0].reserves[0];
-
+              const parsedReserves = collection.marketData[0].reserves[0].data; // reserve object -> .data = TReserve
+              const mData =
+                collection.marketData[0].reserves[0].getReserveState();
+              console.log('@@-- mData', mData);
               await populateMarketData(
                 'BORROW',
                 collection,
@@ -308,7 +306,8 @@ const Markets: NextPage = () => {
                 honeyClient,
                 honeyMarket,
                 honeyUser,
-                parsedReserves
+                parsedReserves,
+                mData
               );
 
               collection.positions = await handlePositions(
@@ -333,23 +332,8 @@ const Markets: NextPage = () => {
               setLoanToValue(Number(collection.ltv));
 
               return collection;
-            } else {
-              await populateMarketData(
-                'BORROW',
-                collection,
-                sdkConfig.saberHqConnection,
-                sdkConfig.sdkWallet,
-                currentMarketId,
-                false,
-                userOpenPositions === undefined ? [] : userOpenPositions,
-                false,
-                honeyClient,
-                honeyMarket,
-                honeyUser,
-                parsedReserves
-              );
-              return collection;
             }
+            return collection;
           })
         );
       }
@@ -913,7 +897,7 @@ const Markets: NextPage = () => {
           sdkConfig.saberHqConnection,
           confirmationHash
         );
-
+        // TODO: refresh honeyReserves data[0].user.refresh() data[0].reserves[0].refresh()
         reserveHoneyState === 0
           ? setReserveHoneyState(1)
           : setReserveHoneyState(0);
