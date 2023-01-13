@@ -7,7 +7,7 @@ import { BidListProps } from './types';
 import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
 const BidsList = (props: BidListProps) => {
-  const { biddingArray, fetchedSolPrice } = props;
+  const { biddingArray, fetchedReservePrice } = props;
   const [convertedBiddingArray, setConvertedBiddingArray] = useState([]);
 
   // Put your validators here
@@ -45,7 +45,7 @@ const BidsList = (props: BidListProps) => {
         {currentBidCardData.length ? (
           <CurrentBidList
             data={currentBidCardData}
-            fetchedSolPrice={fetchedSolPrice}
+            fetchedReservePrice={fetchedReservePrice}
           />
         ) : (
           'No open bids'
