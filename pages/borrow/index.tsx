@@ -46,9 +46,6 @@ import {
   MarketBundle,
   waitForConfirmation,
   withdrawNFT,
-  calcNFT,
-  getInterestRate,
-  BnToDecimal,
   HoneyUser,
   HoneyClient,
   fetchReservePrice
@@ -315,15 +312,21 @@ const Markets: NextPage = () => {
                 userOpenPositions
               );
 
-              if (parsedReserves.data) {
-                collection.rate =
-                  getInterestRate(
-                    parsedReserves.data?.config,
-                    collection.utilizationRate
-                  ) *
-                  collection.utilizationRate *
-                  100;
-              }
+              // if (parsedReserves.data) {
+              //   collection.rate =
+              //     getInterestRate(
+              //       parsedReserves.data?.config,
+              //       collection.utilizationRate
+              //     ) *
+              //     collection.utilizationRate *
+              //     100;
+              // }
+
+              const { utilization, interestRate } =
+                collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
+
+              collection.rate = interestRate;
+              collection.utilizationRate = utilization;
 
               setActiveInterestRate(collection.rate);
               setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
