@@ -227,52 +227,52 @@ async function calculateTotalMarketDebt(parsedReserve: TReserve) {
   );
 }
 // sets total market debt, total market deposits, decodes parsed reserve
-export async function decodeReserve(
-  honeyMarket: HoneyMarket,
-  honeyClient: HoneyClient,
-  parsedReserves: TReserve
-) {
-  try {
-    // set reserve data
-    const reserveInfoList = honeyMarket.reserves;
-    let parsedReserve: TReserve = parsedReserves;
-    let totalMarketDeposits = 0;
+// export async function decodeReserve(
+//   honeyMarket: HoneyMarket,
+//   honeyClient: HoneyClient,
+//   parsedReserves: TReserve
+// ) {
+//   try {
+//     // set reserve data
+//     const reserveInfoList = honeyMarket.reserves;
+//     let parsedReserve: TReserve = parsedReserves;
+//     let totalMarketDeposits = 0;
 
-    for (const reserve of reserveInfoList) {
-      if (reserve.reserve.equals(PublicKey.default)) {
-        continue;
-      }
+//     for (const reserve of reserveInfoList) {
+//       if (reserve.reserve.equals(PublicKey.default)) {
+//         continue;
+//       }
 
-      const { ...data } = await HoneyReserve.decodeReserve(
-        honeyClient,
-        reserve.reserve
-      );
+//       const { ...data } = await HoneyReserve.decodeReserve(
+//         honeyClient,
+//         reserve.reserve
+//       );
 
-      parsedReserve = data;
-      break;
-    }
+//       parsedReserve = data;
+//       break;
+//     }
 
-    if (parsedReserve !== undefined) {
-      totalMarketDeposits = BnToDecimal(
-        parsedReserve.reserveState.totalDeposits,
-        9,
-        2
-      );
-    }
+//     if (parsedReserve !== undefined) {
+//       totalMarketDeposits = BnToDecimal(
+//         parsedReserve.reserveState.totalDeposits,
+//         9,
+//         2
+//       );
+//     }
 
-    const totalMarketDebt = await calculateTotalMarketDebt(parsedReserve);
-    return {
-      totalMarketDebt,
-      totalMarketDeposits,
-      parsedReserve
-    };
-  } catch (error) {
-    return {
-      totalMarketDebt: 0,
-      totalMarketDeposits: 0
-    };
-  }
-}
+//     const totalMarketDebt = await calculateTotalMarketDebt(parsedReserve);
+//     return {
+//       totalMarketDebt,
+//       totalMarketDeposits,
+//       parsedReserve
+//     };
+//   } catch (error) {
+//     return {
+//       totalMarketDebt: 0,
+//       totalMarketDeposits: 0
+//     };
+//   }
+// }
 
 async function handleFormatMarket(
   origin: string,
@@ -287,9 +287,12 @@ async function handleFormatMarket(
   parsedReserves: any
 ) {
   // calculates total market debt, total market deposits, decodes parsed reserve
-  const { totalMarketDebt, totalMarketDeposits, parsedReserve } =
-    await decodeReserve(honeyMarket, honeyClient, parsedReserves);
+  // const { totalMarketDebt, totalMarketDeposits, parsedReserve } =
+  //   await decodeReserve(honeyMarket, honeyClient, parsedReserves);
 
+  const totalMarketDebt = 0;
+  const totalMarketDeposits = 0;
+  const parsedReserve: any = [];
   // calculates total value of a market
   const totalMarketValue = totalMarketDeposits + totalMarketDebt;
 
@@ -310,7 +313,7 @@ async function handleFormatMarket(
       nftPrice,
       obligations.length,
       honeyUser,
-      honeyMarket.reserves[0],
+      honeyMarket.cachedReserveInfo[0],
       parsedReserve
     );
 
@@ -321,7 +324,7 @@ async function handleFormatMarket(
 
     const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
     const userTotalDeposits = await calculateUserDeposits(
-      honeyMarket.reserves,
+      honeyMarket.cachedReserveInfo,
       honeyUser,
       parsedReserve
     );
@@ -462,7 +465,7 @@ export async function populateMarketData(
       new PublicKey(collection.id)
     );
     // init reserves
-    const honeyReserves: HoneyReserve[] = honeyMarket.reserves.map(
+    const honeyReserves: HoneyReserve[] = honeyMarket.cachedReserveInfo.map(
       reserve => new HoneyReserve(honeyClient, honeyMarket, reserve.reserve)
     );
 

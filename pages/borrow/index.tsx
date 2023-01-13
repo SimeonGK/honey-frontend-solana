@@ -55,8 +55,7 @@ import {
 } from '@honey-finance/sdk';
 import {
   populateMarketData,
-  fetchLTV,
-  decodeReserve
+  fetchLTV
 } from 'helpers/loanHelpers/userCollection';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { ToastProps } from 'hooks/useToast';
@@ -317,10 +316,10 @@ const Markets: NextPage = () => {
                 userOpenPositions
               );
 
-              if (parsedReserves) {
+              if (parsedReserves.data) {
                 collection.rate =
                   getInterestRate(
-                    parsedReserves.config,
+                    parsedReserves.data?.config,
                     collection.utilizationRate
                   ) *
                   collection.utilizationRate *
