@@ -199,10 +199,10 @@ const Markets: NextPage = () => {
   const [isCreateMarketAreaOnHover, setIsCreateMarketAreaOnHover] =
     useState<boolean>(false);
 
-  // fetches the sol price
+  // fetches the reserve price
   // TODO: create type for reserves and connection
-  async function fetchSolValue(reserves: any, connection: any) {
-    const reservePrice = await fetchReservePrice(reserves, connection, false);
+  async function fetchSolValue(reserve: any, connection: any) {
+    const reservePrice = await fetchReservePrice(reserve, connection, false);
     setFetchedSolPrice(reservePrice);
   }
 
@@ -248,7 +248,7 @@ const Markets: NextPage = () => {
    */
   useEffect(() => {
     if (parsedReserves && sdkConfig.saberHqConnection) {
-      fetchSolValue(parsedReserves, sdkConfig.saberHqConnection);
+      fetchSolValue(parsedReserves[0], sdkConfig.saberHqConnection);
     }
   }, [parsedReserves]);
 
@@ -285,15 +285,15 @@ const Markets: NextPage = () => {
                   marketObject.market.address.toString() === collection.id
               );
 
-              console.log('@@-- collection', collection.marketData);
-
               const honeyUser = collection.marketData[0].user;
               const honeyMarket = collection.marketData[0].market;
               const honeyClient = collection.marketData[0].client;
               const parsedReserves = collection.marketData[0].reserves[0].data; // reserve object -> .data = TReserve
               const mData =
                 collection.marketData[0].reserves[0].getReserveState();
-              console.log('@@-- mData', mData);
+
+              console.log('@@-- data', mData);
+
               await populateMarketData(
                 'BORROW',
                 collection,
@@ -345,13 +345,13 @@ const Markets: NextPage = () => {
     }
   }, [
     reserveHoneyState,
-    userOpenPositions,
-    honeyUser,
-    honeyClient,
-    honeyMarket,
-    parsedReserves,
-    marketData,
-    NFTs
+    // userOpenPositions,
+    // honeyUser,
+    // honeyClient,
+    // honeyMarket,
+    // parsedReserves,
+    marketData
+    // NFTs
   ]);
 
   const showMobileSidebar = () => {

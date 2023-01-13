@@ -261,8 +261,8 @@ const Liquidate: NextPage = () => {
    * @params
    * @returns
    */
-  async function fetchSolValue(reserves: any, connection: any) {
-    const reservePrice = await fetchReservePrice(reserves, connection, false);
+  async function fetchSolValue(reserve: any, connection: any) {
+    const reservePrice = await fetchReservePrice(reserve, connection, false);
     setFetchedReservePrice(reservePrice);
   }
   /**
@@ -272,7 +272,7 @@ const Liquidate: NextPage = () => {
    */
   useEffect(() => {
     if (parsedReserves && sdkConfig.saberHqConnection) {
-      fetchSolValue(parsedReserves, sdkConfig.saberHqConnection);
+      fetchSolValue(parsedReserves[0], sdkConfig.saberHqConnection);
     }
   }, [parsedReserves]);
   //  ************* END FETCH SOL PRICE *************
