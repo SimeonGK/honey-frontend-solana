@@ -213,9 +213,17 @@ const Markets: NextPage = () => {
       marketIDs,
       false
     );
-
+    console.log('@@-- data', data);
     setMarketData(data as unknown as MarketBundle[]);
   }
+
+  useEffect(() => {
+    console.log('use effect: honey user updated');
+  }, [honeyUser]);
+
+  useEffect(() => {
+    console.log('use effect: market data changed');
+  }, [marketData]);
 
   useEffect(() => {
     if (sdkConfig.saberHqConnection && sdkConfig.honeyId) {
@@ -348,13 +356,13 @@ const Markets: NextPage = () => {
     }
   }, [
     reserveHoneyState,
-    // userOpenPositions,
+    userOpenPositions,
     // honeyUser,
     // honeyClient,
     // honeyMarket,
     // parsedReserves,
-    marketData
-    // NFTs
+    marketData,
+    NFTs
   ]);
 
   const showMobileSidebar = () => {
@@ -810,6 +818,9 @@ const Markets: NextPage = () => {
               confirmationHash
             );
 
+            await marketData[0].reserves[0].refresh();
+            await marketData[0].user.refresh();
+
             await refreshPositions();
             refetchNfts({});
 
@@ -857,6 +868,9 @@ const Markets: NextPage = () => {
           confirmationHash
         );
 
+        await marketData[0].reserves[0].refresh();
+        await marketData[0].user.refresh();
+
         await refreshPositions();
         refetchNfts({});
 
@@ -884,6 +898,7 @@ const Markets: NextPage = () => {
       const borrowTokenMint = new PublicKey(
         'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'
       );
+
       toast.processing();
       const tx = await borrowAndRefresh(
         honeyUser,
@@ -900,7 +915,10 @@ const Markets: NextPage = () => {
           sdkConfig.saberHqConnection,
           confirmationHash
         );
-        // TODO: refresh honeyReserves data[0].user.refresh() data[0].reserves[0].refresh()
+        // refresh reserves and user to update debt / market values
+        await marketData[0].reserves[0].refresh();
+        await marketData[0].user.refresh();
+
         reserveHoneyState === 0
           ? setReserveHoneyState(1)
           : setReserveHoneyState(0);
@@ -946,6 +964,10 @@ const Markets: NextPage = () => {
           sdkConfig.saberHqConnection,
           confirmationHash
         );
+
+        // refresh reserves and user to update debt / market values
+        await marketData[0].reserves[0].refresh();
+        await marketData[0].user.refresh();
 
         reserveHoneyState === 0
           ? setReserveHoneyState(1)

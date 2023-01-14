@@ -280,52 +280,22 @@ async function handleFormatMarket(
   parsedReserves: TReserve,
   mData?: any
 ) {
-  // calculates total market debt, total market deposits, decodes parsed reserve
-  // const { totalMarketDebt, totalMarketDeposits, parsedReserve } =
-  //   await decodeReserve(honeyMarket, honeyClient, parsedReserves);
-
   const totalMarketDebt = mData ? mData.outstandingDebt : 0;
   const totalMarketDeposits = mData ? mData.totalDeposits : 0;
-  console.log('xyz total market deposits', totalMarketDeposits);
-  // const parsedReserve: any = [];
-  // calculates total value of a market
-  const totalMarketValue = totalMarketDeposits + totalMarketDebt;
-
-  // calculates nft price of a market
-
-  console.log('@@-- coming here?');
+  const totalMarketValue = new BN(
+    totalMarketDeposits - totalMarketDebt
+  ).toString();
   const nftPrice = await honeyMarket.fetchNFTFloorPriceInReserve(0);
-  console.log('@@-- nft price', nftPrice);
-
   collection.nftPrice = nftPrice;
 
-  // const { sumOfAllowance, sumOfTotalDebt } = await fetchAllowanceAndDebt(
-  //   nftPrice,
-  //   obligations.length,
-  //   honeyUser,
-  //   honeyMarket.cachedReserveInfo[0],
-  //   parsedReserves
-  // );
-
-  // console.log('@@-- sum of all', sumOfAllowance);
-  // console.log('@@-- sumOfTotalDebt', sumOfTotalDebt);
   const allowanceAndDebt = await honeyUser.fetchAllowanceAndDebt(
     0,
     'mainnet-beta'
   );
 
-  if (allowanceAndDebt)
-    console.log(
-      '@@-- allowance object',
-      allowanceAndDebt.allowance.toString(),
-      allowanceAndDebt.debt.toString()
-    );
-
   // const ltv = sumOfTotalDebt.div(new BN(nftPrice));
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
-  console.log('@@-- tvl', tvl.toString());
   const ltv = honeyMarket.fetchLTV();
-
   const userTotalDeposits = await honeyUser.fetchUserDeposits(0);
 
   // if request comes from liquidation page we need the collection object to be different
@@ -369,8 +339,8 @@ async function handleFormatMarket(
       ? allowanceAndDebt.debt.toString()
       : 0;
     collection.ltv = ltv;
-    collection.available = totalMarketDeposits * BONK_DECIMAL_DIVIDER;
-    collection.value = totalMarketValue * BONK_DECIMAL_DIVIDER;
+    collection.available = totalMarketDeposits.toString();
+    collection.value = totalMarketValue.toString();
     collection.connection = connection;
     collection.nftPrice = nftPrice;
     // TODO: fix util rate based off object coming in
@@ -388,8 +358,8 @@ async function handleFormatMarket(
       ? allowanceAndDebt.debt.toString()
       : 0;
     collection.ltv = ltv;
-    collection.available = totalMarketDeposits * BONK_DECIMAL_DIVIDER;
-    collection.value = totalMarketValue * BONK_DECIMAL_DIVIDER;
+    collection.available = totalMarketDeposits;
+    collection.value = totalMarketValue;
     collection.connection = connection;
     collection.nftPrice = nftPrice;
     collection.userTotalDeposits = userTotalDeposits;
