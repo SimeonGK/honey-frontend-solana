@@ -17,6 +17,7 @@ const FarmHeaderComponent = (props: FarmHeaderComponentProps) => {
     farmAcc,
     collectionTotalNumber,
     rewardTokenName,
+    isAirdropTokenAvailable,
     handleRefreshRewardsButtonClick,
     claimRewards,
     claimAirdroppedBonk
@@ -151,13 +152,20 @@ const FarmHeaderComponent = (props: FarmHeaderComponentProps) => {
           >
             {`Claim $${rewardTokenName}`}
           </Button>
-          <Button
-            onClick={() => withTxLoading(claimAirdroppedBonk, 'claim')}
-            loading={txLoading.value && txLoading.txName === 'claim'}
-            size="small"
-          >
-            {`Claim $BONK`}
-          </Button>{' '}
+          {isAirdropTokenAvailable && (
+            <Button
+              onClick={() =>
+                withTxLoading(claimAirdroppedBonk, 'claim_airdropped_token')
+              }
+              loading={
+                txLoading.value && txLoading.txName === 'claim_airdropped_token'
+              }
+              size="small"
+              variant="secondary"
+            >
+              {`Claim $BONK`}
+            </Button>
+          )}{' '}
           {Object.values(stakedNFTsInFarm).length > 0 && !farmerVaultLocked && (
             <Button
               onClick={() => withTxLoading(lockVault, 'stake')}

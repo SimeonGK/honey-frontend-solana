@@ -10,7 +10,7 @@ import {
   withdrawTokensInBank
 } from 'helpers/gemFarm';
 import { BN, parseIdlErrors } from '@project-serum/anchor';
-import { convertArrayToObject } from 'helpers/utils';
+import { convertArrayToObject, getWalletSplTokenBal } from 'helpers/utils';
 import useFetchNFTByUser from './useNFTV2';
 import { useRouter } from 'next/router';
 import { newFarmCollections } from 'constants/new-farms';
@@ -28,6 +28,8 @@ import {
 const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID: PublicKey = new PublicKey(
   'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'
 );
+
+const airdropTokenMint = 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'; //$BONK
 
 //this fn takes the error caught in a tryCatch block and check for
 //some specified errors and show toast notifications for them
@@ -96,6 +98,8 @@ const useGemFarm = () => {
 
   const [availableA, setAvailableA] = useState<string>();
   const [availableB, setAvailableB] = useState<string>();
+  const [isAirdropTokenAvailable, setisAirdropTokenAvailable] =
+    useState<boolean>(false);
 
   // fetch farmer details from gem farm
   const fetchFarmerDetails = useCallback(
@@ -108,17 +112,24 @@ const useGemFarm = () => {
           farmAddress,
           wallet?.publicKey
         );
-        console.log({ farmer });
+
+        //check if farmer has airdropped token in vault
+        const vaultAirdropTokenAmount = await getWalletSplTokenBal(
+          farmer.farmerAcc.vault,
+          new PublicKey(airdropTokenMint),
+          connection
+        );
+
+        console.log({ airdropTokenMint });
+
         setFarmerAcc(farmer.farmerAcc);
         setVaultAcc(farmer.vaultAcc);
         setAvailableA(farmer.rewards.availableA);
         setAvailableB(farmer.rewards.availableB);
         setFarmerIdentity(farmer.farmerIdentity);
         setFarmerState(farmer.farmerState);
-        console.log({
-          rewardA: farmer.rewards.availableA,
-          rewardB: farmer.rewards.availableA
-        });
+
+        setisAirdropTokenAvailable(Boolean(vaultAirdropTokenAmount));
       } catch (error) {
         checkErrorAndShowToast(error, 'Farmer account not found');
       }
@@ -564,16 +575,17 @@ const useGemFarm = () => {
 
   const claimAirdroppedBonk = async () => {
     if (!gb) return;
-    console.log(vaultAcc.owner.toString());
     try {
       await withdrawTokensInBank(
         gb,
         new PublicKey(bankAddress),
         new PublicKey(farmerAcc.vault),
         vaultAcc.owner,
-        new PublicKey('DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263')
+        new PublicKey(airdropTokenMint)
       );
+      toast.success('Bonk Airdrop Tokens claimed');
     } catch (error) {
+      toast.error('Failed to claim Bonk Tokens');
       console.log(error);
     }
   };
@@ -622,7 +634,8 @@ const useGemFarm = () => {
     farmerState,
     selectedVaultNFTs,
     selectedWalletNFTs,
-    farmerVaultLocked: vaultAcc?.locked
+    farmerVaultLocked: vaultAcc?.locked,
+    isAirdropTokenAvailable
   };
 };
 

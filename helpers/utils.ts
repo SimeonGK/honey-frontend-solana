@@ -18,7 +18,12 @@ import {
 import * as anchor from '@project-serum/anchor';
 import type { Network } from '@saberhq/solana-contrib';
 import type { Cluster, TransactionInstruction } from '@solana/web3.js';
-import { Fraction, Token, TokenInfo } from '@saberhq/token-utils';
+import {
+  Fraction,
+  getATAAddressSync,
+  Token,
+  TokenInfo
+} from '@saberhq/token-utils';
 import { VoteSide } from 'helpers/dao';
 import { SmartWalletTransactionData } from '@gokiprotocol/client';
 import BN from 'bn.js';
@@ -437,4 +442,31 @@ export const getVoteCountFmt = (votes: number, veToken: Token) => {
   } else {
     return 0;
   }
+};
+
+const getSplTokenBalance = async (
+  connection: Connection,
+  tokenAccountAddress: PublicKey
+) => {
+  try {
+    const { value } = await connection.getTokenAccountBalance(
+      tokenAccountAddress
+    );
+    return value.uiAmount;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const getWalletSplTokenBal = async (
+  walletAddress: PublicKey,
+  tokenMint: PublicKey,
+  connection: Connection
+) => {
+  const ATA = getATAAddressSync({
+    mint: tokenMint,
+    owner: walletAddress
+  });
+  const balance = await getSplTokenBalance(connection, ATA);
+  return balance;
 };

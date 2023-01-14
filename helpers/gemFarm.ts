@@ -206,32 +206,11 @@ export const withdrawTokensInBank = async (
   vaultOwner: PublicKey,
   tokenMint: PublicKey
 ) => {
-  console.log(
-    bankAddress.toString(),
-    vaultAddress.toString(),
-    vaultOwner.toString()
-  );
-
-  const walletBonkATA = getATAAddressSync({
-    mint: tokenMint,
-    owner: vaultOwner
-  });
-  const vaultBonkATA = getATAAddressSync({
-    mint: tokenMint,
-    owner: vaultAddress
-  });
-
-  const initialWalletBonk = null;
-  const initialVaultBonk = null;
-
   const result = await gb.withdrawTokensAuth(
     bankAddress,
     vaultAddress,
     vaultOwner,
     tokenMint
   );
-
-  console.log(result);
-
   await result.builder.rpc();
 };
