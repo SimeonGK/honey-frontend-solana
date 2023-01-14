@@ -1,7 +1,8 @@
-import { Box, Button, IconRefresh, Stack, Text } from 'degen';
+import { Box, Button, IconRefresh, Stack, Text, vars } from 'degen';
 import React, { useMemo, useState } from 'react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import useGemFarm from 'hooks/useGemFarm';
+import { vars as honeyThemeVars } from 'styles/theme.css';
 
 interface FarmHeaderComponentProps {
   farmerState: string;
@@ -70,7 +71,7 @@ const FarmHeaderComponent = (props: FarmHeaderComponentProps) => {
 
   return (
     <Box
-      backgroundColor="background"
+      style={{ background: honeyThemeVars.colors.foreground }}
       width="full"
       paddingX="8"
       paddingY="4"

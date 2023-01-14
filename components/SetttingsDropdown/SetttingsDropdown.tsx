@@ -148,7 +148,7 @@ const SettingsDropdown = (props: { className?: string }) => {
             }
             onChange={value => {
               setTheme(value);
-              setMode(['dark', 'dusk'].includes(theme) ? 'dark' : 'light');
+              setMode(['dark', 'dusk'].includes(theme) ? 'light' : 'dark');
             }}
           />
         </Space>

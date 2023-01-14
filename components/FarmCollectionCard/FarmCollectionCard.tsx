@@ -27,7 +27,6 @@ const FarmCollectionCard = (props: any) => {
 
   return (
     <Box
-      backgroundColor="backgroundTertiary"
       padding="5"
       borderRadius="2xLarge"
       width="full"

@@ -2,6 +2,7 @@ import FarmNFTCard from 'components/FarmNftCard';
 import { Box, Button, Card, Spinner, Stack, Text } from 'degen';
 import React from 'react';
 import * as styles from './FarmNFTsContainer.css';
+import { vars as honeyThemeVars } from 'styles/theme.css';
 
 type TButton = {
   title: string;
@@ -32,7 +33,14 @@ const FarmNFTsContainer = (props: FarmNFTsContainerProps) => {
   } = props;
   return (
     <Box className={styles.cardContainer}>
-      <Card level="2" width="full" padding="8" shadow>
+      <Box
+        style={{
+          background: honeyThemeVars.colors.foreground,
+          borderRadius: 15
+        }}
+        padding="8"
+        width="full"
+      >
         <Box height="full" display="flex">
           <Stack flex={1}>
             <Stack
@@ -88,7 +96,7 @@ const FarmNFTsContainer = (props: FarmNFTsContainerProps) => {
             )}
           </Stack>
         </Box>
-      </Card>
+      </Box>
     </Box>
   );
 };

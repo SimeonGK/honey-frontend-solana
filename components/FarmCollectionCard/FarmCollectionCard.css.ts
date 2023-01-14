@@ -6,6 +6,7 @@ export const cardContainer = style({
   boxSizing: 'border-box',
   borderWidth: 2,
   borderColor: 'black',
+  background: vars.colors.foreground,
   ':hover': {
     borderColor: vars.colors.brownLight,
     borderWidth: 3
