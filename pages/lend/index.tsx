@@ -33,8 +33,6 @@ import {
   MarketBundle,
   waitForConfirmation,
   useBorrowPositions,
-  getInterestRate,
-  calcNFT,
   ReserveConfigStruct
 } from '@honey-finance/sdk';
 import {
@@ -372,7 +370,7 @@ const Lend: NextPage = () => {
               const honeyUser = collection.marketData[0].user;
               const honeyMarket = collection.marketData[0].market;
               const honeyClient = collection.marketData[0].client;
-              const parsedReserves = collection.marketData[0].reserves[0];
+              const parsedReserves = collection.marketData[0].reserves[0].data;
 
               await populateMarketData(
                 'BORROW',
@@ -388,14 +386,12 @@ const Lend: NextPage = () => {
                 honeyUser,
                 parsedReserves
               );
+              const { utilization, interestRate } =
+                collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
 
-              if (parsedReserves) {
-                collection.rate =
-                  getInterestRate(
-                    parsedReserves.config,
-                    collection.utilizationRate
-                  ) * collection.utilizationRate;
-              }
+              collection.utilizationRate = utilization;
+
+              collection.rate = interestRate * utilization;
 
               collection.stats = getPositionData();
               if (currentMarketId == collection.id) {
@@ -408,23 +404,7 @@ const Lend: NextPage = () => {
               }
 
               return collection;
-            } else {
-              await populateMarketData(
-                'LEND',
-                collection,
-                sdkConfig.saberHqConnection,
-                sdkConfig.sdkWallet,
-                currentMarketId,
-                false,
-                userOpenPositions === undefined ? [] : userOpenPositions,
-                true,
-                honeyClient,
-                honeyMarket,
-                honeyUser,
-                parsedReserves
-              );
             }
-
             return collection;
           })
         );
@@ -436,12 +416,12 @@ const Lend: NextPage = () => {
       });
     }
   }, [
-    sdkConfig.saberHqConnection,
-    sdkConfig.sdkWallet,
+    // sdkConfig.saberHqConnection,
+    // sdkConfig.sdkWallet,
     marketData,
     currentMarketId,
-    honeyReservesChange,
-    userOpenPositions
+    honeyReservesChange
+    // userOpenPositions
   ]);
 
   const onSearch = (searchTerm: string): LendTableRow[] => {

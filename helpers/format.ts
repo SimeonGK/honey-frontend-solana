@@ -1,4 +1,5 @@
 import React from 'react';
+import BN from 'bn.js';
 
 export const numberFormatter = new Intl.NumberFormat('en-US', {
   style: 'decimal',
@@ -14,9 +15,13 @@ export const numberFormatterMobile = new Intl.NumberFormat('en-US', {
 
 export const formatNumber = {
   format: (val?: number): string => {
+  // format: (val?: number | BN): string => {
     if (!val) {
       return '0';
     }
+    // if (typeof(val) == 'number') {
+    //   val = new BN(val);
+    // }
     return numberFormatter.format(val);
   },
 

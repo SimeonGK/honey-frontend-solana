@@ -470,25 +470,8 @@ const Liquidate: NextPage = () => {
               if (currentMarketId === collection.id)
                 setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
               return collection;
-            } else {
-              marketCollections.map(async collection => {
-                await populateMarketData(
-                  'LIQUIDATIONS',
-                  collection,
-                  sdkConfig.saberHqConnection,
-                  sdkConfig.sdkWallet,
-                  currentMarketId,
-                  true,
-                  [],
-                  true,
-                  honeyClient,
-                  honeyMarket,
-                  honeyUser,
-                  parsedReserves
-                );
-              });
-              return collection;
             }
+            return collection;
           })
         );
       }

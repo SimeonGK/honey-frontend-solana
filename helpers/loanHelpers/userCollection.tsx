@@ -284,8 +284,8 @@ async function handleFormatMarket(
   // const { totalMarketDebt, totalMarketDeposits, parsedReserve } =
   //   await decodeReserve(honeyMarket, honeyClient, parsedReserves);
 
-  const totalMarketDebt = mData.outstandingDebt;
-  const totalMarketDeposits = mData.totalDeposits;
+  const totalMarketDebt = mData ? mData.outstandingDebt : 0;
+  const totalMarketDeposits = mData ? mData.totalDeposits : 0;
   console.log('xyz total market deposits', totalMarketDeposits);
   // const parsedReserve: any = [];
   // calculates total value of a market
