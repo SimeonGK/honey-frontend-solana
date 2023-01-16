@@ -39,7 +39,7 @@ const RepayForm = (props: RepayProps) => {
     userAllowance,
     userDebt,
     loanToValue,
-    fetchedSolPrice,
+    fetchedReservePrice,
     currentMarketId,
     hideMobileSidebar,
     changeTab
@@ -51,7 +51,7 @@ const RepayForm = (props: RepayProps) => {
   const { toast, ToastComponent } = useToast();
   // constants && calculations
   const maxValue = userDebt != 0 ? userDebt : userAllowance;
-  const solPrice = fetchedSolPrice;
+  const reservePrice = fetchedReservePrice;
   const liquidationThreshold = COLLATERAL_FACTOR;
   const bonkBalance = 0; //FETCH FROM WALLET
   const newDebt = userDebt - (valueSOL ? valueSOL : 0);
@@ -74,7 +74,7 @@ const RepayForm = (props: RepayProps) => {
     if (userDebt <= 0) return;
 
     setSliderValue(value);
-    setValueUSD(value * solPrice);
+    setValueUSD(value * reservePrice);
     setValueSOL(value);
   };
   // change of input - render calculated values
@@ -86,8 +86,8 @@ const RepayForm = (props: RepayProps) => {
       return;
     }
     setValueUSD(usdValue);
-    setValueSOL(usdValue / solPrice);
-    setSliderValue(usdValue / solPrice);
+    setValueSOL(usdValue / reservePrice);
+    setSliderValue(usdValue / reservePrice);
   };
   // change of input - render calculated values
   const handleSolInputChange = (solValue: number | undefined) => {
@@ -98,7 +98,7 @@ const RepayForm = (props: RepayProps) => {
       return;
     }
 
-    setValueUSD(solValue * solPrice);
+    setValueUSD(solValue * reservePrice);
     setValueSOL(solValue);
     setSliderValue(solValue);
   };

@@ -78,50 +78,6 @@ export async function fetchLTV(totalMarketDebt: number, nftPrice: number) {
   return totalMarketDebt / nftPrice;
 }
 
-// export async function fetchUserDebt(
-//   honeyUser: HoneyUser,
-//   marketReserveInfo: any
-// ) {
-//   let totalDebt = 0;
-
-//   if (honeyUser?.loans().length > 0) {
-//     if (honeyUser?.loans().length > 0 && marketReserveInfo) {
-//       totalDebt =
-//         marketReserveInfo[0].loanNoteExchangeRate
-//           .mul(honeyUser?.loans()[0]?.amount)
-//           .div(new BN(10 ** 15))
-//           .toNumber() / BONK_DECIMAL_DIVIDER;
-//     }
-//   }
-
-//   return RoundHalfUp(totalDebt);
-// }
-// // old func. that calculates user allowance
-// export async function fetchAllowance(
-//   nftPrice: number,
-//   collateralNFTPositions: number,
-//   honeyUser: HoneyUser,
-//   marketReserveInfo: CachedReserveInfo[]
-// ) {
-//   if (nftPrice === 0) return 0;
-
-//   const nftCollateralValue = nftPrice * collateralNFTPositions;
-//   let userLoans = 0;
-
-//   if (honeyUser?.loans().length > 0) {
-//     if (honeyUser?.loans().length > 0 && marketReserveInfo) {
-//       userLoans =
-//         (marketReserveInfo[0].loanNoteExchangeRate
-//           .mul(honeyUser?.loans()[0]?.amount)
-//           .div(new BN(10 ** 15))
-//           .toNumber() *
-//           1.002) /
-//         1e5;
-//     }
-//   }
-
-//   return RoundHalfDown(nftCollateralValue * MAX_LTV - userLoans, 4);
-// }
 // filters out zero debt obligations and multiplies outstanding obl. by nft price
 export async function fetchTVL(obligations: any) {
   if (!obligations.length) return 0;
@@ -282,9 +238,7 @@ async function handleFormatMarket(
 ) {
   const totalMarketDebt = mData ? mData.outstandingDebt : 0;
   const totalMarketDeposits = mData ? mData.totalDeposits : 0;
-  const totalMarketValue = new BN(
-    totalMarketDeposits - totalMarketDebt
-  ).toString();
+  const totalMarketValue = new BN(totalMarketDeposits).toString();
   const nftPrice = await honeyMarket.fetchNFTFloorPriceInReserve(0);
   collection.nftPrice = nftPrice;
 
@@ -292,7 +246,6 @@ async function handleFormatMarket(
     0,
     'mainnet-beta'
   );
-
   // const ltv = sumOfTotalDebt.div(new BN(nftPrice));
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
   const ltv = honeyMarket.fetchLTV();
@@ -396,6 +349,11 @@ export async function populateMarketData(
   // create dummy keypair if no wallet is connected to fetch values of the collections regardless of connected wallet
   let dummyWallet = wallet ? wallet : new NodeWallet(new Keypair());
   // since we inject the market id at top level (app.tsx) we need to create a new provider, init new honeyClient and market, for each market
+  console.log('@@xyz', hasMarketData);
+  console.log('@@xyz', honeyClient);
+  console.log('@@xyz', honeyMarket);
+  console.log('@@xyz', honeyUser);
+  console.log('@@xyz', parsedReserves);
 
   if (
     hasMarketData &&

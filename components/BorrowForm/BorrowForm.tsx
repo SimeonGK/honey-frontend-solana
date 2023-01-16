@@ -51,7 +51,7 @@ const BorrowForm = (props: BorrowProps) => {
     userDebt,
     loanToValue,
     hideMobileSidebar,
-    fetchedSolPrice,
+    fetchedReservePrice,
     calculatedInterestRate,
     currentMarketId
   } = props;
@@ -66,7 +66,7 @@ const BorrowForm = (props: BorrowProps) => {
   // constants && calculations
   const borrowedValue = userDebt;
   const maxValue = userAllowance;
-  const solPrice = fetchedSolPrice;
+  const reservePrice = fetchedReservePrice;
   const liquidationThreshold = COLLATERAL_FACTOR; // TODO: change where relevant, currently set to 65% on mainnet
   const borrowFee = BORROW_FEE; // TODO: 1,5% later but 0% for now
   const newAdditionalDebt = valueSOL * (1 + borrowFee);
@@ -88,7 +88,7 @@ const BorrowForm = (props: BorrowProps) => {
   const handleSliderChange = (value: number) => {
     if (userAllowance == 0) return;
     setSliderValue(value);
-    setValueUSD(value * solPrice);
+    setValueUSD(value * reservePrice);
     setValueSOL(value);
   };
   // change of input - render calculated values
@@ -101,8 +101,8 @@ const BorrowForm = (props: BorrowProps) => {
       return;
     }
     setValueUSD(usdValue);
-    setValueSOL(usdValue / solPrice);
-    setSliderValue(usdValue / solPrice);
+    setValueSOL(usdValue / reservePrice);
+    setSliderValue(usdValue / reservePrice);
   };
   // change of input - render calculated values
   const handleSolInputChange = (solValue: number | undefined) => {
@@ -114,7 +114,7 @@ const BorrowForm = (props: BorrowProps) => {
       return;
     }
 
-    setValueUSD(solValue * solPrice);
+    setValueUSD(solValue * reservePrice);
     setValueSOL(solValue);
     setSliderValue(solValue);
   };

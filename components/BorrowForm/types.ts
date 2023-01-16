@@ -6,7 +6,7 @@ export type BorrowProps = {
   userAllowance: number;
   userDebt: number;
   loanToValue: number;
-  fetchedSolPrice: number;
+  fetchedReservePrice: number;
   calculatedInterestRate: number;
   currentMarketId: string;
   executeDepositNFT: (mint: string, toast: any, name: string, creator: string) => void;

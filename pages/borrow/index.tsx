@@ -48,7 +48,8 @@ import {
   withdrawNFT,
   HoneyUser,
   HoneyClient,
-  fetchReservePrice
+  fetchReservePrice,
+  TReserve
 } from '@honey-finance/sdk';
 import {
   populateMarketData,
@@ -166,7 +167,7 @@ const Markets: NextPage = () => {
   const [userDebt, setUserDebt] = useState<number>(0);
   const [reserveHoneyState, setReserveHoneyState] = useState(0);
   const [launchAreaWidth, setLaunchAreaWidth] = useState<number>(840);
-  const [fetchedSolPrice, setFetchedSolPrice] = useState(0);
+  const [fetchedReservePrice, setFetchedReservePrice] = useState(0);
   const [activeInterestRate, setActiveInterestRate] = useState(0);
   // interface related constants
   const { width: windowWidth } = useWindowSize();
@@ -198,9 +199,9 @@ const Markets: NextPage = () => {
 
   // fetches the reserve price
   // TODO: create type for reserves and connection
-  async function fetchSolValue(reserve: any, connection: any) {
+  async function fetchReserveValue(reserve: TReserve, connection: any) {
     const reservePrice = await fetchReservePrice(reserve, connection, false);
-    setFetchedSolPrice(reservePrice);
+    setFetchedReservePrice(reservePrice);
   }
 
   const [marketData, setMarketData] = useState<MarketBundle[]>([]);
@@ -213,17 +214,9 @@ const Markets: NextPage = () => {
       marketIDs,
       false
     );
-    console.log('@@-- data', data);
+
     setMarketData(data as unknown as MarketBundle[]);
   }
-
-  useEffect(() => {
-    console.log('use effect: honey user updated');
-  }, [honeyUser]);
-
-  useEffect(() => {
-    console.log('use effect: market data changed');
-  }, [marketData]);
 
   useEffect(() => {
     if (sdkConfig.saberHqConnection && sdkConfig.honeyId) {
@@ -252,8 +245,8 @@ const Markets: NextPage = () => {
    * @returns updates marketValue
    */
   useEffect(() => {
-    if (parsedReserves && sdkConfig.saberHqConnection) {
-      fetchSolValue(parsedReserves[0], sdkConfig.saberHqConnection);
+    if (parsedReserves) {
+      fetchReserveValue(parsedReserves[0], sdkConfig.saberHqConnection);
     }
   }, [parsedReserves]);
 
@@ -297,8 +290,6 @@ const Markets: NextPage = () => {
               const mData =
                 collection.marketData[0].reserves[0].getReserveState();
 
-              console.log('@@-- data', mData);
-
               await populateMarketData(
                 'BORROW',
                 collection,
@@ -320,16 +311,6 @@ const Markets: NextPage = () => {
                 userOpenPositions
               );
 
-              // if (parsedReserves.data) {
-              //   collection.rate =
-              //     getInterestRate(
-              //       parsedReserves.data?.config,
-              //       collection.utilizationRate
-              //     ) *
-              //     collection.utilizationRate *
-              //     100;
-              // }
-
               const { utilization, interestRate } =
                 collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
 
@@ -339,6 +320,9 @@ const Markets: NextPage = () => {
               setActiveInterestRate(collection.rate);
               setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
               setUserAllowance(collection.allowance);
+              console.log('user debt', collection.userDebt);
+              console.log('user debt', collection.userDebt?.toString());
+
               setUserDebt(collection.userDebt ? collection.userDebt : 0);
               setLoanToValue(Number(collection.ltv));
 
@@ -878,6 +862,8 @@ const Markets: NextPage = () => {
           'Withdraw success',
           `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
         );
+      } else {
+        return toast.error('Withdraw failed');
       }
 
       return true;
@@ -1002,7 +988,7 @@ const Markets: NextPage = () => {
               userAllowance={userAllowance}
               loanToValue={loanToValue}
               hideMobileSidebar={hideMobileSidebar}
-              fetchedSolPrice={fetchedSolPrice}
+              fetchedReservePrice={fetchedReservePrice}
               // TODO: call helper function include all markets
               calculatedInterestRate={activeInterestRate}
               currentMarketId={currentMarketId}

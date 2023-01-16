@@ -26,7 +26,7 @@ const MarketsSidebar = (props: MarketsSidebarProps) => {
     userAllowance,
     userDebt,
     loanToValue,
-    fetchedSolPrice,
+    fetchedReservePrice,
     calculatedInterestRate,
     currentMarketId,
     hideMobileSidebar,
@@ -139,7 +139,7 @@ const MarketsSidebar = (props: MarketsSidebarProps) => {
                 userAllowance={userAllowance}
                 loanToValue={loanToValue}
                 hideMobileSidebar={hideMobileSidebar}
-                fetchedSolPrice={fetchedSolPrice}
+                fetchedReservePrice={fetchedReservePrice}
                 calculatedInterestRate={calculatedInterestRate}
                 currentMarketId={currentMarketId}
               />
@@ -156,7 +156,7 @@ const MarketsSidebar = (props: MarketsSidebarProps) => {
                 loanToValue={loanToValue}
                 hideMobileSidebar={hideMobileSidebar}
                 changeTab={handleTabChange}
-                fetchedSolPrice={fetchedSolPrice}
+                fetchedReservePrice={fetchedReservePrice}
                 currentMarketId={currentMarketId}
               />
             )}
