@@ -78,6 +78,13 @@ const FarmHeaderComponent = (props: FarmHeaderComponentProps) => {
       borderRadius="2xLarge"
       flex={1}
     >
+      {Object.values(stakedNFTsInFarm).length > 0 && !farmerVaultLocked && (
+        <Stack justify="flex-end" align="flex-end">
+          <Text color="red" size="large">
+            Lock your vault to start earning!!
+          </Text>
+        </Stack>
+      )}
       <Stack
         space="12"
         align={{ md: 'center', sm: 'stretch', xs: 'stretch' }}
