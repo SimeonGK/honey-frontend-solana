@@ -254,6 +254,7 @@ async function handleFormatMarket(
   // if request comes from liquidation page we need the collection object to be different
   if (origin === 'LIQUIDATIONS') {
     collection.name;
+
     collection.allowance = allowanceAndDebt.allowance;
     collection.userDebt = allowanceAndDebt.debt;
     collection.available = totalMarketDeposits;
@@ -285,6 +286,7 @@ async function handleFormatMarket(
 
     // request comes from borrow or lend - same base collection object
   } else if (origin === 'BORROW') {
+    console.log(allowanceAndDebt);
     collection.allowance = allowanceAndDebt
       ? allowanceAndDebt.allowance.toString()
       : 0;

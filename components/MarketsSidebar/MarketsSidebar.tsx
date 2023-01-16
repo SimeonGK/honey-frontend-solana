@@ -35,7 +35,6 @@ const MarketsSidebar = (props: MarketsSidebarProps) => {
     executeBorrow,
     executeRepay
   } = props;
-  // tab state
   const [activeTab, setActiveTab] = useState<Tab>('borrow');
   const { connect } = useWalletKit();
   // sets active tab

@@ -49,7 +49,8 @@ import {
   HoneyUser,
   HoneyClient,
   fetchReservePrice,
-  TReserve
+  TReserve,
+  makeRepayAndWithdrawNFT
 } from '@honey-finance/sdk';
 import {
   populateMarketData,
@@ -929,45 +930,39 @@ const Markets: NextPage = () => {
    * @params amount of repay
    * @returns repayTx
    */
-  async function executeRepay(val: any, toast: ToastProps['toast']) {
-    try {
-      if (!val) return toast.error('Please provide a value');
-      const repayTokenMint = new PublicKey(BONK_MARKET_ID);
+  async function executeRepay(
+    val: any,
+    metadataPubKey: PublicKey,
+    toast: ToastProps['toast']
+  ) {
+    if (!val) return toast.error('Please provide a value');
+    const repayTokenMint = new PublicKey(BONK_MARKET_ID);
 
-      toast.processing();
-      const tx = await repayAndRefresh(
-        honeyUser,
-        new BN(val * BONK_DECIMAL_DIVIDER),
-        repayTokenMint,
-        marketData[0].reserves
+    toast.processing();
+    const tx = await makeRepayAndWithdrawNFT(
+      honeyUser.client.program.provider.connection,
+      honeyUser,
+      metadataPubKey,
+      new BN((val + 1) * BONK_DECIMAL_DIVIDER),
+      repayTokenMint,
+      marketData[0].reserves[0]
+    );
+
+    if (tx) {
+      await waitForConfirmation(sdkConfig.saberHqConnection, tx[1][0]);
+
+      // refresh reserves and user to update debt / market values
+      await marketData[0].reserves[0].refresh();
+      await marketData[0].user.refresh();
+
+      reserveHoneyState === 0
+        ? setReserveHoneyState(1)
+        : setReserveHoneyState(0);
+
+      toast.success(
+        'Repay success',
+        `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
       );
-
-      if (tx[0] == 'SUCCESS') {
-        const confirmation = tx[1];
-        const confirmationHash = confirmation[1];
-
-        await waitForConfirmation(
-          sdkConfig.saberHqConnection,
-          confirmationHash
-        );
-
-        // refresh reserves and user to update debt / market values
-        await marketData[0].reserves[0].refresh();
-        await marketData[0].user.refresh();
-
-        reserveHoneyState === 0
-          ? setReserveHoneyState(1)
-          : setReserveHoneyState(0);
-
-        toast.success(
-          'Repay success',
-          `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-        );
-      } else {
-        return toast.error('Repay failed');
-      }
-    } catch (error) {
-      return toast.error('An error occurred');
     }
   }
 

@@ -24,8 +24,6 @@ import {
   useHoney,
   useMarket,
   withdrawNFT,
-  getInterestRate,
-  calcNFT,
   fetchReservePrice
 } from '@honey-finance/sdk';
 import { PublicKey } from '@solana/web3.js';

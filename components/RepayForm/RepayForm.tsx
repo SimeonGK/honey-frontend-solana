@@ -19,6 +19,8 @@ import { COLLATERAL_FACTOR } from 'helpers/marketHelpers';
 import { renderMarketImageByID } from 'helpers/marketHelpers';
 import { Space } from 'antd';
 import BonkIcon from 'images/bonkCoin.png';
+import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
+import { ConfigureSDK } from 'helpers/loanHelpers';
 
 const {
   format: f,
@@ -64,6 +66,7 @@ const RepayForm = (props: RepayProps) => {
   const newLiqPercent = nftPrice
     ? ((nftPrice - newLiquidationPrice) / nftPrice) * 100
     : 0;
+  const sdkConfig = ConfigureSDK();
 
   // Put your validators here
   const isRepayButtonDisabled = () => {
@@ -110,7 +113,11 @@ const RepayForm = (props: RepayProps) => {
       //   changeTab('borrow');
       // }
     } else {
-      executeRepay(valueSOL || 0, toast);
+      const metadata = await Metadata.findByMint(
+        sdkConfig.saberHqConnection,
+        openPositions[0].mint
+      );
+      executeRepay(valueSOL || 0, metadata.pubkey, toast);
       handleSliderChange(0);
     }
   };
