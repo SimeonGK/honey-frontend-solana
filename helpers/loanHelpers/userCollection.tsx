@@ -287,21 +287,18 @@ async function handleFormatMarket(
   parsedReserves: TReserve,
   mData?: any
 ) {
-  const totalMarketDebt = mData ? mData.outstandingDebt : 0;
-  const totalMarketDeposits = mData ? mData.totalDeposits : 0;
+  const totalMarketDebt = mData ? new BN(mData.outstandingDebt.toString()) : 0;
+  const totalMarketDeposits = mData
+    ? new BN(mData.totalDeposits).toString()
+    : 0;
   const totalMarketValue = new BN(totalMarketDeposits).toString();
   const nftPrice = await honeyMarket.fetchNFTFloorPrice('mainnet-beta');
   collection.nftPrice = nftPrice;
-
-  console.log('xyz - nft price afla', nftPrice);
-  console.log('xyz - nft price beta', nftPrice / BONK_DECIMAL_DIVIDER);
 
   const allowanceAndDebt = await honeyUser.fetchAllowanceAndDebt(
     0,
     'mainnet-beta'
   );
-
-  console.log('xyz - nft price gamma', allowanceAndDebt?.allowance.toString());
 
   // const ltv = sumOfTotalDebt.div(new BN(nftPrice));
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
@@ -318,9 +315,8 @@ async function handleFormatMarket(
     collection.value = totalMarketValue;
     collection.connection = connection;
     // TODO: fix util rate based off object coming in
-    collection.utilizationRate = Number(
-      f(totalMarketDebt / (totalMarketDeposits + totalMarketDebt))
-    );
+    collection.utilizationRate =
+      honeyUser.market.reserveList[0].config.utilizationRate1;
     collection.user = honeyUser;
     collection.nftPrice = nftPrice;
     collection.ltv = ltv;
@@ -356,9 +352,8 @@ async function handleFormatMarket(
     collection.connection = connection;
     collection.nftPrice = nftPrice;
     // TODO: fix util rate based off object coming in
-    collection.utilizationRate = Number(
-      f(totalMarketDebt / (totalMarketDeposits + totalMarketDebt))
-    );
+    collection.utilizationRate =
+      honeyUser.market.reserveList[0].config.utilizationRate1;
     collection.user = honeyUser;
     collection.name;
     return collection;
@@ -376,9 +371,8 @@ async function handleFormatMarket(
     collection.nftPrice = nftPrice;
     collection.userTotalDeposits = userTotalDeposits;
     // TODO: fix util rate based off object coming in
-    collection.utilizationRate = Number(
-      f(totalMarketDebt / (totalMarketDeposits + totalMarketDebt))
-    );
+    collection.utilizationRate =
+      honeyUser.market.reserveList[0].config.utilizationRate1;
     collection.user = honeyUser;
     collection.name;
     return collection;

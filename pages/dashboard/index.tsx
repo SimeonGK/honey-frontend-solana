@@ -24,6 +24,7 @@ import {
   useHoney,
   useMarket,
   withdrawNFT,
+  makeRepayAndWithdrawNFT,
   fetchReservePrice
 } from '@honey-finance/sdk';
 import { PublicKey } from '@solana/web3.js';
@@ -587,6 +588,7 @@ const Dashboard: NextPage = () => {
         'So11111111111111111111111111111111111111112'
       );
       toast.processing();
+
       const tx = await repay(honeyUser, val, repayTokenMint, honeyReserves);
 
       if (tx[0] == 'SUCCESS') {

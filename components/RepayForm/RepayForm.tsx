@@ -21,6 +21,7 @@ import { Space } from 'antd';
 import BonkIcon from 'images/bonkCoin.png';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { ConfigureSDK } from 'helpers/loanHelpers';
+import { BONK_DECIMAL_DIVIDER_MIL } from 'constants/market';
 
 const {
   format: f,
@@ -196,7 +197,7 @@ const RepayForm = (props: RepayProps) => {
           </div>
           <div className={styles.col}>
             <InfoBlock
-              value={fsn(userAllowance)}
+              value={fsn(userAllowance / BONK_DECIMAL_DIVIDER_MIL)}
               title={
                 <span className={hAlign}>
                   Allowance <div className={questionIcon} />

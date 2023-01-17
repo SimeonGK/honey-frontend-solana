@@ -50,7 +50,8 @@ import {
   HoneyClient,
   fetchReservePrice,
   TReserve,
-  makeRepayAndWithdrawNFT
+  makeRepayAndWithdrawNFT,
+  repay
 } from '@honey-finance/sdk';
 import {
   populateMarketData,
@@ -92,7 +93,11 @@ import CreateMarketSidebar from '../../components/CreateMarketSidebar/CreateMark
 // TODO: change to dynamic value
 const network = 'mainnet-beta';
 import { featureFlags } from 'helpers/featureFlags';
-import { BONK_DECIMAL_DIVIDER, BONK_MARKET_ID } from 'constants/market';
+import {
+  BONK_DECIMAL_DIVIDER,
+  BONK_DECIMAL_DIVIDER_MIL,
+  BONK_MARKET_ID
+} from 'constants/market';
 // import { network } from 'pages/_app';
 const {
   format: f,
@@ -321,9 +326,6 @@ const Markets: NextPage = () => {
               setActiveInterestRate(collection.rate);
               setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
               setUserAllowance(collection.allowance);
-              console.log('user debt', collection.userDebt);
-              console.log('user debt', collection.userDebt?.toString());
-
               setUserDebt(collection.userDebt ? collection.userDebt : 0);
               setLoanToValue(Number(collection.ltv));
 
@@ -663,7 +665,7 @@ const Markets: NextPage = () => {
         <div className={style.expandedRowCell}>
           <InfoBlock
             title={'Allowance:'}
-            value={fsn(userAllowance / BONK_DECIMAL_DIVIDER)}
+            value={fsn(userAllowance / BONK_DECIMAL_DIVIDER_MIL)}
           />
         </div>
       )
@@ -938,34 +940,70 @@ const Markets: NextPage = () => {
     metadataPubKey: PublicKey,
     toast: ToastProps['toast']
   ) {
-    if (!val) return toast.error('Please provide a value');
-    const repayTokenMint = new PublicKey(BONK_MARKET_ID);
+    try {
+      if (!val) return toast.error('Please provide a value');
+      const repayTokenMint = new PublicKey(BONK_MARKET_ID);
 
-    toast.processing();
-    const tx = await makeRepayAndWithdrawNFT(
-      honeyUser.client.program.provider.connection,
-      honeyUser,
-      metadataPubKey,
-      new BN((val + 1) * BONK_DECIMAL_DIVIDER),
-      repayTokenMint,
-      marketData[0].reserves[0]
-    );
+      if (val >= userDebt) {
+        toast.processing();
 
-    if (tx) {
-      await waitForConfirmation(sdkConfig.saberHqConnection, tx[1][0]);
+        const tx = await makeRepayAndWithdrawNFT(
+          sdkConfig.saberHqConnection,
+          honeyUser,
+          metadataPubKey,
+          new BN((val + 1000) * BONK_DECIMAL_DIVIDER),
+          repayTokenMint,
+          marketData[0].reserves[0]
+        );
 
-      // refresh reserves and user to update debt / market values
-      await marketData[0].reserves[0].refresh();
-      await marketData[0].user.refresh();
+        if (tx) {
+          await waitForConfirmation(sdkConfig.saberHqConnection, tx[1][0]);
 
-      reserveHoneyState === 0
-        ? setReserveHoneyState(1)
-        : setReserveHoneyState(0);
+          // refresh reserves and user to update debt / market values
+          await marketData[0].reserves[0].refresh();
+          await marketData[0].user.refresh();
 
-      toast.success(
-        'Repay success',
-        `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-      );
+          await refreshPositions();
+          refetchNfts({});
+
+          reserveHoneyState === 0
+            ? setReserveHoneyState(1)
+            : setReserveHoneyState(0);
+
+          toast.success(
+            'Repay success',
+            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+          );
+        }
+      } else {
+        toast.processing();
+        const tx = await repayAndRefresh(
+          honeyUser,
+          new BN(val * BONK_DECIMAL_DIVIDER),
+          repayTokenMint,
+          marketData[0].reserves
+        );
+
+        if (tx) {
+          await waitForConfirmation(sdkConfig.saberHqConnection, tx[1][0]);
+
+          // refresh reserves and user to update debt / market values
+          await marketData[0].reserves[0].refresh();
+          await marketData[0].user.refresh();
+
+          reserveHoneyState === 0
+            ? setReserveHoneyState(1)
+            : setReserveHoneyState(0);
+
+          toast.success(
+            'Repay success',
+            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+          );
+        }
+      }
+    } catch (error) {
+      console.log('@@-- error', error);
+      return toast.error('An error occurred', error);
     }
   }
 
