@@ -85,6 +85,38 @@ export async function fetchTVL(obligations: any) {
 }
 
 /**
+ * @description calculates the nft price based on switchboard
+ * @params marketreserve | parsedreserve | honeymarket | connection
+ * @returns nft price usd / sol
+ */
+export async function calcNFT(
+  marketReserveInfo: any,
+  parsedReserves: any,
+  honeyMarket: any,
+  connection: any
+) {
+  try {
+    if (marketReserveInfo && parsedReserves && honeyMarket) {
+      let solPrice = await getOraclePrice(
+        'mainnet-beta',
+        connection,
+        parsedReserves.switchboardPriceAggregator
+      ); //in sol
+      let nftPrice = await getOraclePrice(
+        'mainnet-beta',
+        connection,
+        honeyMarket.nftSwitchboardPriceAggregator
+      ); //in usd
+
+      return Number(nftPrice / solPrice);
+    }
+  } catch (error) {
+    console.log('An error occurred', error);
+    return 0;
+  }
+}
+
+/**
  * @description pollutes the chart on lend with dummy historic rates
  * @params none
  * @returns chart data
