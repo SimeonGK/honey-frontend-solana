@@ -100,6 +100,25 @@ const getPositionData = () => {
   return [];
 };
 /**
+ * @description fetches the sol price from switchboard
+ * @params marketreserve | parsedreserve | honeymarket | connection
+ * @returns the current sol price
+ */
+export async function fetchSolPrice(parsedReserves: any, connection: any) {
+  if (parsedReserves && connection) {
+    try {
+      let solPrice = await getOraclePrice(
+        network === 'devnet' ? 'devnet' : 'mainnet-beta',
+        connection,
+        parsedReserves[0].switchboardPriceAggregator
+      );
+      return solPrice;
+    } catch (error) {
+      throw error;
+    }
+  }
+}
+/**
  * @description sets the obligations for the liquidation page of a collection and filters out obligations with zero debt
  * @params obligations array, currentmarketid. nft
  * @returns chart data
