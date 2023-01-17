@@ -45,6 +45,7 @@ import LendSidebar from '../../components/LendSidebar/LendSidebar';
 import { PositionType } from '../../types/dashboard';
 import { formatNumber } from '../../helpers/format';
 import { BONK_DECIMAL_DIVIDER } from 'constants/market';
+import { calcNFT } from 'helpers/loanHelpers/userCollection';
 
 const network = 'devnet'; // change to dynamic value
 
@@ -356,6 +357,7 @@ const Dashboard: NextPage = () => {
   async function calculateNFTPrice() {
     if (marketReserveInfo && parsedReserves && honeyMarket) {
       let nftPrice = await calcNFT(
+        marketReserveInfo,
         parsedReserves[0],
         honeyMarket.market,
         sdkConfig.saberHqConnection
@@ -578,7 +580,7 @@ const Dashboard: NextPage = () => {
    * @params amount of repay
    * @returns repayTx
    */
-  async function executeRepay(val: any, toast: ToastProps['toast']) {
+  async function executeRepay(val: any, mint: PublicKey, toast: any) {
     try {
       if (!val) return toast.error('Please provide a value');
       const repayTokenMint = new PublicKey(
@@ -651,7 +653,7 @@ const Dashboard: NextPage = () => {
           userAllowance={userAllowance}
           loanToValue={loanToValue}
           hideMobileSidebar={hideMobileSidebar}
-          fetchedSolPrice={fetchedSolPrice}
+          fetchedReservePrice={fetchedReservePrice}
           calculatedInterestRate={calculatedInterestRate}
           //TODO: fix market id
           currentMarketId={''}
