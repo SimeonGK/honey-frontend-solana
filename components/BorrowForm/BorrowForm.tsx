@@ -25,6 +25,7 @@ import {
   BORROW_FEE,
   COLLATERAL_FACTOR
 } from 'helpers/marketHelpers';
+import { BONK_DECIMAL_DIVIDER } from 'constants/market';
 
 const {
   formatPercent: fp,
@@ -225,7 +226,7 @@ const BorrowForm = (props: BorrowProps) => {
           </div>
           <div className={styles.col}>
             <InfoBlock
-              value={fsn(userAllowance)}
+              value={fsn(userAllowance / BONK_DECIMAL_DIVIDER)}
               title={
                 <span className={hAlign}>
                   Allowance <div className={questionIcon} />

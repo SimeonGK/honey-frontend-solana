@@ -239,13 +239,19 @@ async function handleFormatMarket(
   const totalMarketDebt = mData ? mData.outstandingDebt : 0;
   const totalMarketDeposits = mData ? mData.totalDeposits : 0;
   const totalMarketValue = new BN(totalMarketDeposits).toString();
-  const nftPrice = await honeyMarket.fetchNFTFloorPriceInReserve(0);
+  const nftPrice = await honeyMarket.fetchNFTFloorPrice('mainnet-beta');
   collection.nftPrice = nftPrice;
+
+  console.log('xyz - nft price afla', nftPrice);
+  console.log('xyz - nft price beta', nftPrice / BONK_DECIMAL_DIVIDER);
 
   const allowanceAndDebt = await honeyUser.fetchAllowanceAndDebt(
     0,
     'mainnet-beta'
   );
+
+  console.log('xyz - nft price gamma', allowanceAndDebt?.allowance.toString());
+
   // const ltv = sumOfTotalDebt.div(new BN(nftPrice));
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
   const ltv = honeyMarket.fetchLTV();

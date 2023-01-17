@@ -661,7 +661,10 @@ const Markets: NextPage = () => {
       width: columnsWidth[2],
       render: allowance => (
         <div className={style.expandedRowCell}>
-          <InfoBlock title={'Allowance:'} value={fsn(userAllowance)} />
+          <InfoBlock
+            title={'Allowance:'}
+            value={fsn(userAllowance / BONK_DECIMAL_DIVIDER)}
+          />
         </div>
       )
     },
