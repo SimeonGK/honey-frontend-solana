@@ -420,8 +420,8 @@ const Lend: NextPage = () => {
     // sdkConfig.sdkWallet,
     marketData,
     currentMarketId,
-    honeyReservesChange
-    // userOpenPositions
+    honeyReservesChange,
+    userOpenPositions
   ]);
 
   const onSearch = (searchTerm: string): LendTableRow[] => {

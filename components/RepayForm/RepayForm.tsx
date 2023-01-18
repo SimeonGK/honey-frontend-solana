@@ -21,7 +21,10 @@ import { Space } from 'antd';
 import BonkIcon from 'images/bonkCoin.png';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { ConfigureSDK } from 'helpers/loanHelpers';
-import { BONK_DECIMAL_DIVIDER_MIL } from 'constants/market';
+import {
+  BONK_DECIMAL_DIVIDER_MIL,
+  BONK_DECIMAL_DIVIDER
+} from 'constants/market';
 
 const {
   format: f,
