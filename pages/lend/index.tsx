@@ -246,12 +246,10 @@ const Lend: NextPage = () => {
           confirmationHash
         );
 
+        await marketData[0].reserves[0].refresh();
+        await marketData[0].user.refresh();
+
         await fetchMarket();
-        marketCollections.map(async market => {
-          if (market.marketData && market.id === currentMarketId) {
-            await market.marketData[0].user.refresh();
-          }
-        });
 
         honeyReservesChange === 0
           ? setHoneyReservesChange(1)
@@ -300,12 +298,10 @@ const Lend: NextPage = () => {
           confirmationHash
         );
 
+        await marketData[0].reserves[0].refresh();
+        await marketData[0].user.refresh();
+
         await fetchMarket();
-        marketCollections.map(async market => {
-          if (market.marketData && market.id === currentMarketId) {
-            await market.marketData[0].user.refresh();
-          }
-        });
 
         honeyReservesChange === 0
           ? setHoneyReservesChange(1)
@@ -356,7 +352,7 @@ const Lend: NextPage = () => {
    * @returns
    */
   useEffect(() => {
-    if (sdkConfig.saberHqConnection && marketData) {
+    if (sdkConfig.saberHqConnection) {
       function getData() {
         return Promise.all(
           marketCollections.map(async collection => {
@@ -371,9 +367,11 @@ const Lend: NextPage = () => {
               const honeyMarket = collection.marketData[0].market;
               const honeyClient = collection.marketData[0].client;
               const parsedReserves = collection.marketData[0].reserves[0].data;
+              const mData =
+                collection.marketData[0].reserves[0].getReserveState();
 
               await populateMarketData(
-                'BORROW',
+                'LEND',
                 collection,
                 sdkConfig.saberHqConnection,
                 sdkConfig.sdkWallet,
@@ -384,24 +382,29 @@ const Lend: NextPage = () => {
                 honeyClient,
                 honeyMarket,
                 honeyUser,
-                parsedReserves
+                parsedReserves,
+                mData
               );
-              const { utilization, interestRate } =
-                collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
 
-              collection.utilizationRate = utilization;
+              // const { utilization, interestRate } =
+              // collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
 
-              collection.rate = interestRate * utilization;
+              // collection.utilizationRate = utilization;
+              collection.utilizationRate = 0;
+
+              // collection.rate = interestRate * utilization;
+              collection.rate = 0;
 
               collection.stats = getPositionData();
-              if (currentMarketId == collection.id) {
-                setActiveMarketSupplied(collection.value);
-                setActiveMarketAvailable(collection.available);
-                setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
-                collection.userTotalDeposits
-                  ? setUserTotalDeposits(collection.userTotalDeposits)
-                  : setUserTotalDeposits(0);
-              }
+
+              // TODO: when scaling markets - loop through all markets and only fire
+              // if current market id is equal to market id in loop
+              setActiveMarketSupplied(collection.value);
+              setActiveMarketAvailable(collection.available);
+              setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+              collection.userTotalDeposits
+                ? setUserTotalDeposits(collection.userTotalDeposits)
+                : setUserTotalDeposits(0);
 
               return collection;
             }
@@ -548,7 +551,11 @@ const Lend: NextPage = () => {
         dataIndex: 'value',
         sorter: (a, b) => a.value - b.value,
         render: (value: number, market: any) => {
-          return <div className={style.valueCell}>{fsn(value)}</div>;
+          return (
+            <div className={style.valueCell}>
+              {fsn(value / BONK_DECIMAL_DIVIDER)}
+            </div>
+          );
         }
       },
       {
@@ -571,7 +578,11 @@ const Lend: NextPage = () => {
         dataIndex: 'available',
         sorter: (a, b) => a.available - b.available,
         render: (available: number, market: any) => {
-          return <div className={style.availableCell}>{fsn(available)}</div>;
+          return (
+            <div className={style.availableCell}>
+              {fsn(available / BONK_DECIMAL_DIVIDER)}
+            </div>
+          );
         }
       },
       {
