@@ -95,11 +95,7 @@ import CreateMarketSidebar from '../../components/CreateMarketSidebar/CreateMark
 // TODO: change to dynamic value
 const network = 'mainnet-beta';
 import { featureFlags } from 'helpers/featureFlags';
-import {
-  BONK_DECIMAL_DIVIDER,
-  BONK_DECIMAL_DIVIDER_MIL,
-  BONK_MARKET_ID
-} from 'constants/market';
+import { BONK_DECIMAL_DIVIDER, BONK_MARKET_ID } from 'constants/market';
 // import { network } from 'pages/_app';
 const {
   format: f,
@@ -324,13 +320,10 @@ const Markets: NextPage = () => {
               const { utilization, interestRate } =
                 collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
               console.log('@@-- util', utilization, interestRate);
-              // collection.rate = interestRate;
-              // collection.utilizationRate = utilization;
+              collection.rate = interestRate;
+              collection.utilizationRate = utilization;
               // const { utilization, interestRate } =
               // marketData[0].reserves[0].getUtilizationAndInterestRate();
-
-              collection.rate = 0;
-              collection.utilizationRate = 0;
               setActiveInterestRate(collection.rate);
               setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
               setUserAllowance(collection.allowance);
@@ -679,7 +672,8 @@ const Markets: NextPage = () => {
         <div className={style.expandedRowCell}>
           <InfoBlock
             title={'Allowance:'}
-            value={fsn(userAllowance / BONK_DECIMAL_DIVIDER_MIL)}
+            // value={fsn(userAllowance / BONK_DECIMAL_DIVIDER_MIL)}
+            value={fsn(userAllowance / BONK_DECIMAL_DIVIDER)}
           />
         </div>
       )

@@ -562,10 +562,29 @@
   dependencies:
     client-only "^0.0.1"
 
-"@honey-finance/sdk@^1.1.48", "@honey-finance/sdk@^1.1.53":
+"@honey-finance/sdk@^1.1.48":
   version "1.1.53"
   resolved "https://registry.yarnpkg.com/@honey-finance/sdk/-/sdk-1.1.53.tgz#4a9a0c800739526dff2590c09a9119cd36f08a6f"
   integrity sha512-jdTtPYZmJlYtTZ+6QQv7MwSAvALZ73ZmxNtagdsGEi4k9o1qd5ZOd4Zp91z/XTtrRZMJ7CyVxSCXCj0cmHQrmA==
+  dependencies:
+    "@honey-finance/sdk" "^1.1.48"
+    "@metaplex-foundation/mpl-token-metadata" "^1.2.0"
+    "@project-serum/anchor" "^0.25.0"
+    "@project-serum/serum" "^0.13.61"
+    "@pythnetwork/client" "^2.5.3"
+    "@rollup/plugin-commonjs" "^21.1.0"
+    "@solana/buffer-layout" "^3.0.0"
+    "@solana/spl-token" "^0.1.8"
+    "@solana/web3.js" "^1.32.1"
+    "@switchboard-xyz/switchboard-v2" "^0.0.127"
+    "@types/chai" "^4.3.0"
+    "@types/chai-as-promised" "^7.1.5"
+    "@types/mocha" "^9.1.0"
+
+"@honey-finance/sdk@^1.1.55":
+  version "1.1.55"
+  resolved "https://registry.yarnpkg.com/@honey-finance/sdk/-/sdk-1.1.55.tgz#2d668fa492312780f3745ef9b142ae9994522c93"
+  integrity sha512-oa9PHw4I+4x7f23sigfJk77kGkfqT5K/I3XBNdKyPDFhNsC6yOKRyql90lybDoAOfVLmaULhoxRuuxqki5TkQQ==
   dependencies:
     "@honey-finance/sdk" "^1.1.48"
     "@metaplex-foundation/mpl-token-metadata" "^1.2.0"

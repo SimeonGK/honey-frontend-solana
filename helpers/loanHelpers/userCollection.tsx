@@ -300,7 +300,10 @@ async function handleFormatMarket(
     'mainnet-beta'
   );
 
-  console.log('this is allowance and debt', allowanceAndDebt);
+  console.log(
+    'this is allowance and debt',
+    allowanceAndDebt.allowance.toString()
+  );
 
   // const ltv = sumOfTotalDebt.div(new BN(nftPrice));
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
