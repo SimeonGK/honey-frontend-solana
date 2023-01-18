@@ -333,13 +333,13 @@ async function handleFormatMarket(
     if (collection.openPositions) {
       collection.openPositions.map((openPos: any) => {
         return (openPos.untilLiquidation =
+          // TODO: use collateral factor from SDK config object
           openPos.estimatedValue - openPos.debt / COLLATERAL_FACTOR);
       });
     }
 
     // request comes from borrow or lend - same base collection object
   } else if (origin === 'BORROW') {
-    console.log(allowanceAndDebt);
     collection.allowance = allowanceAndDebt
       ? allowanceAndDebt.allowance.toString()
       : 0;
@@ -365,11 +365,11 @@ async function handleFormatMarket(
       ? allowanceAndDebt.debt.toString()
       : 0;
     collection.ltv = ltv;
-    collection.available = totalMarketDeposits;
+    collection.available = totalMarketDeposits.toString();
     collection.value = totalMarketValue;
     collection.connection = connection;
     collection.nftPrice = nftPrice;
-    collection.userTotalDeposits = userTotalDeposits;
+    collection.userTotalDeposits = userTotalDeposits.toString();
     // TODO: fix util rate based off object coming in
     collection.utilizationRate =
       honeyUser.market.reserveList[0].config.utilizationRate1;
@@ -402,11 +402,6 @@ export async function populateMarketData(
   // create dummy keypair if no wallet is connected to fetch values of the collections regardless of connected wallet
   let dummyWallet = wallet ? wallet : new NodeWallet(new Keypair());
   // since we inject the market id at top level (app.tsx) we need to create a new provider, init new honeyClient and market, for each market
-  console.log('@@xyz', hasMarketData);
-  console.log('@@xyz', honeyClient);
-  console.log('@@xyz', honeyMarket);
-  console.log('@@xyz', honeyUser);
-  console.log('@@xyz', parsedReserves);
 
   if (
     hasMarketData &&

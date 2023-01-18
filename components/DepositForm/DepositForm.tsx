@@ -40,6 +40,7 @@ const DepositForm = (props: DepositFormProps) => {
   const [valueSOL, setValueSOL] = useState<number>(0);
   const [sliderValue, setSliderValue] = useState(0);
   const [utilizationRate, setUtilizationRate] = useState(0);
+
   // imports toast for responses
   const { toast, ToastComponent } = useToast();
   // sets utilization rate
