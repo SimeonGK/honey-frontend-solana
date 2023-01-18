@@ -52,7 +52,8 @@ import {
   TReserve,
   makeRepayAndWithdrawNFT,
   repay,
-  getCcRate
+  getCcRate,
+  HoneyReserve
 } from '@honey-finance/sdk';
 import {
   populateMarketData,
@@ -318,13 +319,18 @@ const Markets: NextPage = () => {
                 userOpenPositions
               );
 
-              console.log('xyz', collection.marketData);
-
               // const { utilization, interestRate } =
               //   collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
               // collection.rate = interestRate;
               // collection.utilizationRate = utilization;
-
+              // const { utilization, interestRate } =
+              // marketData[0].reserves[0].getUtilizationAndInterestRate();
+              const test = marketData[0].reserves[0]
+                ? marketData[0].reserves[0]
+                : 0;
+              console.log('__@', test);
+              collection.rate = 0;
+              collection.utilizationRate = 0;
               setActiveInterestRate(collection.rate);
               setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
               setUserAllowance(collection.allowance);
