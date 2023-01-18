@@ -319,16 +319,16 @@ const Markets: NextPage = () => {
                 userOpenPositions
               );
 
-              // const { utilization, interestRate } =
-              //   collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
+              console.log('@@__ marketdata', marketData);
+
+              const { utilization, interestRate } =
+                collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
+              console.log('@@-- util', utilization, interestRate);
               // collection.rate = interestRate;
               // collection.utilizationRate = utilization;
               // const { utilization, interestRate } =
               // marketData[0].reserves[0].getUtilizationAndInterestRate();
-              const test = marketData[0].reserves[0]
-                ? marketData[0].reserves[0]
-                : 0;
-              console.log('__@', test);
+
               collection.rate = 0;
               collection.utilizationRate = 0;
               setActiveInterestRate(collection.rate);
@@ -511,7 +511,11 @@ const Markets: NextPage = () => {
               key: 'value',
               hidden: windowWidth < TABLET_BP,
               render: (value: number) => {
-                return <div className={style.valueCell}>{fsn(value)}</div>;
+                return (
+                  <div className={style.valueCell}>
+                    {fsn(value / BONK_DECIMAL_DIVIDER)}
+                  </div>
+                );
               }
             }
           ],
@@ -542,7 +546,9 @@ const Markets: NextPage = () => {
               key: 'available',
               render: (available: number, data: MarketTableRow) => {
                 return (
-                  <div className={style.availableCell}>{fsn(available)}</div>
+                  <div className={style.availableCell}>
+                    {fsn(available / BONK_DECIMAL_DIVIDER)}
+                  </div>
                 );
               }
             }

@@ -386,14 +386,11 @@ const Lend: NextPage = () => {
                 mData
               );
 
-              // const { utilization, interestRate } =
-              // collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
+              const { utilization, interestRate } =
+                collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
 
-              // collection.utilizationRate = utilization;
-              collection.utilizationRate = 0;
-
-              // collection.rate = interestRate * utilization;
-              collection.rate = 0;
+              collection.utilizationRate = utilization;
+              collection.rate = interestRate * utilization;
 
               collection.stats = getPositionData();
 
