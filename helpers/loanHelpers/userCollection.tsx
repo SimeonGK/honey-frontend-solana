@@ -292,7 +292,7 @@ async function handleFormatMarket(
     ? new BN(mData.totalDeposits).toString()
     : 0;
   const totalMarketValue = new BN(totalMarketDeposits).toString();
-  const nftPrice = await honeyMarket.fetchNFTFloorPrice('mainnet-beta');
+  const nftPrice = await honeyMarket.fetchNFTFloorPriceInReserve(0);
   collection.nftPrice = nftPrice;
 
   const allowanceAndDebt = await honeyUser.fetchAllowanceAndDebt(
@@ -300,14 +300,9 @@ async function handleFormatMarket(
     'mainnet-beta'
   );
 
-  console.log(
-    'this is allowance and debt',
-    allowanceAndDebt.allowance.toString()
-  );
-
   // const ltv = sumOfTotalDebt.div(new BN(nftPrice));
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
-  const ltv = honeyMarket.fetchLTV();
+  const ltv = honeyMarket.fetchLTV(0);
   const userTotalDeposits = await honeyUser.fetchUserDeposits(0);
 
   // if request comes from liquidation page we need the collection object to be different
