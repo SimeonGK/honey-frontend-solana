@@ -291,6 +291,7 @@ async function handleFormatMarket(
   const totalMarketDeposits = mData
     ? new BN(mData.totalDeposits).toString()
     : 0;
+  // add totalMarketDebt tot totalMarketValue
   const totalMarketValue = new BN(totalMarketDeposits).toString();
   const nftPrice = await honeyMarket.fetchNFTFloorPriceInReserve(0);
   collection.nftPrice = nftPrice;
