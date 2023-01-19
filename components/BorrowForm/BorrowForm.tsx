@@ -16,6 +16,7 @@ import * as stylesRepay from '../RepayForm/RepayForm.css';
 import { hAlign, extLink } from 'styles/common.css';
 import { questionIcon } from 'styles/icons.css';
 import useToast from 'hooks/useToast';
+import BN from 'bn.js';
 import cs from 'classnames';
 import BonkIcon from 'images/bonkCoin.png';
 import { Space } from 'antd';
@@ -72,7 +73,6 @@ const BorrowForm = (props: BorrowProps) => {
   const maxValue = userAllowance;
   // const reservePrice = fetchedReservePrice * BONK_DECIMAL_DIVIDER_MIL;
   const reservePrice = fetchedReservePrice * BONK_DECIMAL_DIVIDER;
-  console.log('@@-- reserve price', reservePrice.toString());
   const liquidationThreshold = COLLATERAL_FACTOR; // TODO: change where relevant, currently set to 65% on mainnet
   const borrowFee = BORROW_FEE; // TODO: 1,5% later but 0% for now
   const newAdditionalDebt = valueSOL * (1 + borrowFee);
@@ -97,6 +97,7 @@ const BorrowForm = (props: BorrowProps) => {
     setValueUSD(value * reservePrice);
     setValueSOL(value * reservePrice);
   };
+
   // change of input - render calculated values
   const handleUsdInputChange = (usdValue: number | undefined) => {
     if (userAllowance == 0) return;
@@ -231,8 +232,7 @@ const BorrowForm = (props: BorrowProps) => {
           </div>
           <div className={styles.col}>
             <InfoBlock
-              value={fsn(userAllowance / BONK_DECIMAL_DIVIDER)}
-              // value={fsn(userAllowance / BONK_DECIMAL_DIVIDER_MIL)}
+              value={fsn(userAllowance)}
               title={
                 <span className={hAlign}>
                   Allowance <div className={questionIcon} />
@@ -466,8 +466,8 @@ const BorrowForm = (props: BorrowProps) => {
             </div>
           </div>
           <InputsBlock
-            firstInputValue={Number(valueSOL.toFixed())}
-            secondInputValue={Number(valueUSD.toFixed())}
+            firstInputValue={Number(valueSOL.toFixed()) * 10}
+            secondInputValue={Number(valueUSD.toFixed()) * 10}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
             maxValue={maxValue}
