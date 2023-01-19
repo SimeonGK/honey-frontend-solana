@@ -315,11 +315,9 @@ const Markets: NextPage = () => {
                 userOpenPositions
               );
 
-              console.log('@@__ marketdata', marketData);
-
               const { utilization, interestRate } =
                 collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
-              console.log('@@-- util', utilization, interestRate);
+
               collection.rate = interestRate;
               collection.utilizationRate = utilization;
               // const { utilization, interestRate } =
@@ -670,11 +668,7 @@ const Markets: NextPage = () => {
       width: columnsWidth[2],
       render: allowance => (
         <div className={style.expandedRowCell}>
-          <InfoBlock
-            title={'Allowance:'}
-            // value={fsn(userAllowance / BONK_DECIMAL_DIVIDER_MIL)}
-            value={fsn(userAllowance / BONK_DECIMAL_DIVIDER)}
-          />
+          <InfoBlock title={'Allowance:'} value={fsn(userAllowance)} />
         </div>
       )
     },
