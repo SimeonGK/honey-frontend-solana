@@ -72,7 +72,7 @@ const BorrowForm = (props: BorrowProps) => {
   const borrowedValue = userDebt;
   const maxValue = userAllowance;
   // const reservePrice = fetchedReservePrice * BONK_DECIMAL_DIVIDER_MIL;
-  const reservePrice = fetchedReservePrice * BONK_DECIMAL_DIVIDER;
+  const reservePrice = fetchedReservePrice;
   const liquidationThreshold = COLLATERAL_FACTOR; // TODO: change where relevant, currently set to 65% on mainnet
   const borrowFee = BORROW_FEE; // TODO: 1,5% later but 0% for now
   const newAdditionalDebt = valueSOL * (1 + borrowFee);
@@ -95,7 +95,7 @@ const BorrowForm = (props: BorrowProps) => {
     if (userAllowance == 0) return;
     setSliderValue(value);
     setValueUSD(value * reservePrice);
-    setValueSOL(value * reservePrice);
+    setValueSOL(value);
   };
 
   // change of input - render calculated values
@@ -248,7 +248,7 @@ const BorrowForm = (props: BorrowProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fp(loanToValue * 100)}
+              value={fp(loanToValue)}
               toolTipLabel={
                 <span>
                   <a
@@ -299,7 +299,7 @@ const BorrowForm = (props: BorrowProps) => {
                   after the requested changes to the loan are approved.
                 </span>
               }
-              value={fp((loanToValue + newAdditionalDebt / nftPrice) * 100)}
+              value={fp(loanToValue)}
               isDisabled={userDebt == 0 ? true : false}
             />
             <HoneySlider
@@ -466,8 +466,8 @@ const BorrowForm = (props: BorrowProps) => {
             </div>
           </div>
           <InputsBlock
-            firstInputValue={Number(valueSOL.toFixed()) * 10}
-            secondInputValue={Number(valueUSD.toFixed()) * 10}
+            firstInputValue={Number(valueSOL.toFixed())}
+            secondInputValue={Number(valueUSD.toFixed())}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
             maxValue={maxValue}
