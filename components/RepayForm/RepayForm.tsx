@@ -216,7 +216,7 @@ const RepayForm = (props: RepayProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fp(loanToValue * 100)}
+              value={fp(loanToValue)}
               toolTipLabel={
                 <span>
                   <a
