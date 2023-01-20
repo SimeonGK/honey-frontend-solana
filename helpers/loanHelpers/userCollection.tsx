@@ -287,14 +287,17 @@ async function handleFormatMarket(
   parsedReserves: TReserve,
   mData?: any
 ) {
-  const totalMarketDebt = mData ? new BN(mData.outstandingDebt.toString()) : 0;
+  const totalMarketDebt = mData ? mData.outstandingDebt.toString() : 0;
+  const totalMarketDeposits = mData ? mData.totalDeposits.toString() : 0;
 
-  const totalMarketDeposits = mData
-    ? new BN(mData.totalDeposits).toString()
-    : 0;
+  console.log('@@-- total market debt', totalMarketDebt);
+  console.log('@@-- total market deposits', totalMarketDeposits);
 
   // add totalMarketDebt tot totalMarketValue
-  const totalMarketValue = new BN(totalMarketDeposits).toString();
+  const totalMarketValue = new BN(totalMarketDeposits)
+    .add(new BN(mData.outstandingDebt))
+    .toString();
+
   const nftPrice = await honeyMarket.fetchNFTFloorPriceInReserve(0);
   collection.nftPrice = nftPrice;
 
@@ -306,7 +309,6 @@ async function handleFormatMarket(
   // const ltv = sumOfTotalDebt.div(new BN(nftPrice));
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
   const ltv = honeyMarket.fetchLTV(0);
-  console.log('@@-- allowance and debt', allowanceAndDebt.ltv.toString());
 
   const userTotalDeposits = await honeyUser.fetchUserDeposits(0);
 
@@ -352,8 +354,8 @@ async function handleFormatMarket(
       ? allowanceAndDebt.debt.toString()
       : 0;
     collection.ltv = allowanceAndDebt.ltv.toString();
-    collection.available = totalMarketDeposits.toString();
-    collection.value = totalMarketValue.toString();
+    collection.available = totalMarketDeposits;
+    collection.value = totalMarketValue;
     collection.connection = connection;
     collection.nftPrice = nftPrice;
     // TODO: fix util rate based off object coming in
@@ -370,7 +372,7 @@ async function handleFormatMarket(
       ? allowanceAndDebt.debt.toString()
       : 0;
     collection.ltv = allowanceAndDebt.ltv.toString();
-    collection.available = totalMarketDeposits.toString();
+    collection.available = totalMarketDeposits;
     collection.value = totalMarketValue;
     collection.connection = connection;
     collection.nftPrice = nftPrice;
