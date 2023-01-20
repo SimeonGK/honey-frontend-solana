@@ -320,8 +320,7 @@ const Markets: NextPage = () => {
 
               collection.rate = interestRate;
               collection.utilizationRate = utilization;
-              // const { utilization, interestRate } =
-              // marketData[0].reserves[0].getUtilizationAndInterestRate();
+
               setActiveInterestRate(collection.rate);
               setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
               setUserAllowance(collection.allowance);
