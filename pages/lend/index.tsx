@@ -548,11 +548,7 @@ const Lend: NextPage = () => {
         dataIndex: 'value',
         sorter: (a, b) => a.value - b.value,
         render: (value: number, market: any) => {
-          return (
-            <div className={style.valueCell}>
-              {fsn(value / BONK_DECIMAL_DIVIDER)}
-            </div>
-          );
+          return <div className={style.valueCell}>{fsn(value)}</div>;
         }
       },
       {
@@ -575,11 +571,7 @@ const Lend: NextPage = () => {
         dataIndex: 'available',
         sorter: (a, b) => a.available - b.available,
         render: (available: number, market: any) => {
-          return (
-            <div className={style.availableCell}>
-              {fsn(available / BONK_DECIMAL_DIVIDER)}
-            </div>
-          );
+          return <div className={style.availableCell}>{fsn(available)}</div>;
         }
       },
       {

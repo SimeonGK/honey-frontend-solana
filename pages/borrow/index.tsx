@@ -501,11 +501,7 @@ const Markets: NextPage = () => {
               key: 'value',
               hidden: windowWidth < TABLET_BP,
               render: (value: number) => {
-                return (
-                  <div className={style.valueCell}>
-                    {fsn(value / BONK_DECIMAL_DIVIDER)}
-                  </div>
-                );
+                return <div className={style.valueCell}>{fsn(value)}</div>;
               }
             }
           ],
@@ -536,9 +532,7 @@ const Markets: NextPage = () => {
               key: 'available',
               render: (available: number, data: MarketTableRow) => {
                 return (
-                  <div className={style.availableCell}>
-                    {fsn(available / BONK_DECIMAL_DIVIDER)}
-                  </div>
+                  <div className={style.availableCell}>{fsn(available)}</div>
                 );
               }
             }
