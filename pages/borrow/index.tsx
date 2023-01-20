@@ -318,7 +318,7 @@ const Markets: NextPage = () => {
               const { utilization, interestRate } =
                 collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
 
-              collection.rate = interestRate;
+              collection.rate = interestRate * 100;
               collection.utilizationRate = utilization;
 
               setActiveInterestRate(collection.rate);
