@@ -58,7 +58,7 @@ const HoneyButton = (props: HoneyButtonProps) => {
           {isButtonWithValues && (
             <>
               <span className={styles.usdcAmount}>
-                {(props.currency ?? 'SOL') + fsn(solAmount ?? 0)}
+                {(props.currency ?? 'BONK') + fsn(solAmount ?? 0)}
               </span>
               <span className={styles.usdcValue}>
                 {'$' + fsn(usdcValue ?? 0)}
