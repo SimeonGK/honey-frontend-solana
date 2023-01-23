@@ -10,8 +10,14 @@ export interface HoneyButtonProps extends ButtonProps {
   solAmount?: number;
   usdcValue?: number;
   textRight?: string;
+  currency?: string;
 }
-const { format: f, formatPercent: fp, formatUsd: fu } = formatNumber;
+const {
+  format: f,
+  formatPercent: fp,
+  formatUsd: fu,
+  formatShortName: fsn
+} = formatNumber;
 
 const HoneyButton = (props: HoneyButtonProps) => {
   const {
@@ -51,8 +57,12 @@ const HoneyButton = (props: HoneyButtonProps) => {
         >
           {isButtonWithValues && (
             <>
-              <span className={styles.usdcAmount}>SOL {f(solAmount)}</span>
-              <span className={styles.usdcValue}>{fu(usdcValue)}</span>
+              <span className={styles.usdcAmount}>
+                {(props.currency ?? 'BONK') + fsn(solAmount ?? 0)}
+              </span>
+              <span className={styles.usdcValue}>
+                {'$' + fsn(usdcValue ?? 0)}
+              </span>
             </>
           )}
 

@@ -16,15 +16,23 @@ import * as stylesRepay from '../RepayForm/RepayForm.css';
 import { hAlign, extLink } from 'styles/common.css';
 import { questionIcon } from 'styles/icons.css';
 import useToast from 'hooks/useToast';
+import BN from 'bn.js';
 import cs from 'classnames';
+import BonkIcon from 'images/bonkCoin.png';
+import { Space } from 'antd';
 import {
   renderMarketImageByID,
   renderNftList,
   BORROW_FEE,
   COLLATERAL_FACTOR
 } from 'helpers/marketHelpers';
-import QuestionIcon from 'icons/QuestionIcon';
-const { formatPercent: fp, formatSol: fs, formatRoundDown: frd } = formatNumber;
+
+const {
+  formatPercent: fp,
+  formatSol: fs,
+  formatRoundDown: frd,
+  formatShortName: fsn
+} = formatNumber;
 
 interface NFT {
   name: string;
@@ -44,7 +52,7 @@ const BorrowForm = (props: BorrowProps) => {
     userDebt,
     loanToValue,
     hideMobileSidebar,
-    fetchedSolPrice,
+    fetchedReservePrice,
     calculatedInterestRate,
     currentMarketId
   } = props;
@@ -59,7 +67,8 @@ const BorrowForm = (props: BorrowProps) => {
   // constants && calculations
   const borrowedValue = userDebt;
   const maxValue = userAllowance;
-  const solPrice = fetchedSolPrice;
+  // const reservePrice = fetchedReservePrice * BONK_DECIMAL_DIVIDER_MIL;
+  const reservePrice = fetchedReservePrice;
   const liquidationThreshold = COLLATERAL_FACTOR; // TODO: change where relevant, currently set to 65% on mainnet
   const borrowFee = BORROW_FEE; // TODO: 1,5% later but 0% for now
   const newAdditionalDebt = valueSOL * (1 + borrowFee);
@@ -81,9 +90,10 @@ const BorrowForm = (props: BorrowProps) => {
   const handleSliderChange = (value: number) => {
     if (userAllowance == 0) return;
     setSliderValue(value);
-    setValueUSD(value * solPrice);
+    setValueUSD(value * reservePrice);
     setValueSOL(value);
   };
+
   // change of input - render calculated values
   const handleUsdInputChange = (usdValue: number | undefined) => {
     if (userAllowance == 0) return;
@@ -94,8 +104,8 @@ const BorrowForm = (props: BorrowProps) => {
       return;
     }
     setValueUSD(usdValue);
-    setValueSOL(usdValue / solPrice);
-    setSliderValue(usdValue / solPrice);
+    setValueSOL(usdValue / reservePrice);
+    setSliderValue(usdValue / reservePrice);
   };
   // change of input - render calculated values
   const handleSolInputChange = (solValue: number | undefined) => {
@@ -107,7 +117,7 @@ const BorrowForm = (props: BorrowProps) => {
       return;
     }
 
-    setValueUSD(solValue * solPrice);
+    setValueUSD(solValue * reservePrice);
     setValueSOL(solValue);
     setSliderValue(solValue);
   };
@@ -194,14 +204,11 @@ const BorrowForm = (props: BorrowProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(nftPrice)}
+              value={fsn(nftPrice)}
               valueSize="big"
               title={
                 <span className={hAlign}>
-                  Estimated value{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  Estimated value <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={
@@ -221,13 +228,10 @@ const BorrowForm = (props: BorrowProps) => {
           </div>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(Number(frd(userAllowance)))}
+              value={fsn(userAllowance)}
               title={
                 <span className={hAlign}>
-                  Allowance{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  Allowance <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={`Allowance determines how much debt is available to a borrower. This market supports no more than ${fp(
@@ -240,7 +244,7 @@ const BorrowForm = (props: BorrowProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fp(loanToValue * 100)}
+              value={fp(loanToValue)}
               toolTipLabel={
                 <span>
                   <a
@@ -256,10 +260,7 @@ const BorrowForm = (props: BorrowProps) => {
               }
               title={
                 <span className={hAlign}>
-                  Loan-to-Value %
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  Loan-to-Value %<div className={questionIcon} />
                 </span>
               }
             />
@@ -278,9 +279,7 @@ const BorrowForm = (props: BorrowProps) => {
               title={
                 <span className={hAlign}>
                   New LTV %
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={
@@ -296,7 +295,7 @@ const BorrowForm = (props: BorrowProps) => {
                   after the requested changes to the loan are approved.
                 </span>
               }
-              value={fp((loanToValue + newAdditionalDebt / nftPrice) * 100)}
+              value={fp(loanToValue)}
               isDisabled={userDebt == 0 ? true : false}
             />
             <HoneySlider
@@ -316,10 +315,7 @@ const BorrowForm = (props: BorrowProps) => {
             <InfoBlock
               title={
                 <span className={hAlign}>
-                  Debt{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  Debt <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={
@@ -335,17 +331,14 @@ const BorrowForm = (props: BorrowProps) => {
                   </a>
                 </span>
               }
-              value={fs(userDebt)}
+              value={fsn(userDebt)}
             />
           </div>
           <div className={styles.col}>
             <InfoBlock
               title={
                 <span className={hAlign}>
-                  New debt + fees{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  New debt + fees <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={
@@ -361,7 +354,7 @@ const BorrowForm = (props: BorrowProps) => {
                   after the requested changes to the loan are approved.
                 </span>
               }
-              value={fs(newTotalDebt < 0 ? 0 : newTotalDebt)}
+              value={fsn(newTotalDebt < 0 ? 0 : newTotalDebt)}
               isDisabled={userDebt == 0 ? true : false}
             />
           </div>
@@ -370,17 +363,14 @@ const BorrowForm = (props: BorrowProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={`${fs(liquidationPrice)} ${
+              value={`${fsn(liquidationPrice)} ${
                 userDebt ? `(-${liqPercent.toFixed(0)}%)` : ''
               }`}
               valueSize="normal"
               isDisabled={userDebt == 0 ? true : false}
               title={
                 <span className={hAlign}>
-                  Liquidation price{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  Liquidation price <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={
@@ -402,10 +392,7 @@ const BorrowForm = (props: BorrowProps) => {
               isDisabled={userDebt == 0 ? true : false}
               title={
                 <span className={hAlign}>
-                  New Liquidation price{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  New Liquidation price <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={
@@ -421,7 +408,7 @@ const BorrowForm = (props: BorrowProps) => {
                   after the requested changes to the loan are approved.
                 </span>
               }
-              value={`${fs(newLiquidationPrice)} ${
+              value={`${fsn(newLiquidationPrice)} ${
                 userDebt ? `(-${newLiqPercent.toFixed(0)}%)` : ''
               }`}
               valueSize="normal"
@@ -434,10 +421,7 @@ const BorrowForm = (props: BorrowProps) => {
               <InfoBlock
                 title={
                   <span className={hAlign}>
-                    Interest Rate{' '}
-                    <div className={questionIcon}>
-                      <QuestionIcon />
-                    </div>
+                    Interest Rate <div className={questionIcon} />
                   </span>
                 }
                 toolTipLabel={
@@ -460,13 +444,10 @@ const BorrowForm = (props: BorrowProps) => {
                 isDisabled={userDebt == 0 ? true : false}
                 title={
                   <span className={hAlign}>
-                    Borrow Fee{' '}
-                    <div className={questionIcon}>
-                      <QuestionIcon />
-                    </div>
+                    Borrow Fee <div className={questionIcon} />
                   </span>
                 }
-                value={fs(valueSOL * borrowFee)}
+                value={fsn(valueSOL * borrowFee)}
                 //TODO: add link to docs
                 toolTipLabel={
                   <span>
@@ -481,11 +462,26 @@ const BorrowForm = (props: BorrowProps) => {
             </div>
           </div>
           <InputsBlock
-            firstInputValue={valueSOL}
-            secondInputValue={valueUSD}
+            firstInputValue={Number(valueSOL.toFixed())}
+            secondInputValue={Number(valueUSD.toFixed())}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
             maxValue={maxValue}
+            firstInputAddon={
+              <Space align="center">
+                <div
+                  style={{
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    width: 20,
+                    height: 20
+                  }}
+                >
+                  <Image src={BonkIcon} width="100%" height="100%" />
+                </div>
+                BONK
+              </Space>
+            }
           />
         </div>
 
@@ -526,6 +522,7 @@ const BorrowForm = (props: BorrowProps) => {
             disabled={isBorrowButtonDisabled()}
             block
             onClick={handleBorrow}
+            currency="BONK" // CHANGE TO DYNAMIC VALUE
           >
             Borrow
           </HoneyButton>

@@ -17,14 +17,18 @@ import { useSolBalance } from 'hooks/useSolBalance';
 import { MAX_LTV } from 'constants/loan';
 import { COLLATERAL_FACTOR } from 'helpers/marketHelpers';
 import { renderMarketImageByID } from 'helpers/marketHelpers';
-import QuestionIcon from 'icons/QuestionIcon';
+import { Space } from 'antd';
+import BonkIcon from 'images/bonkCoin.png';
+import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
+import { ConfigureSDK } from 'helpers/loanHelpers';
 
 const {
   format: f,
   formatPercent: fp,
   formatSol: fs,
   parse: p,
-  formatRoundDown: frd
+  formatRoundDown: frd,
+  formatShortName: fsn
 } = formatNumber;
 
 const RepayForm = (props: RepayProps) => {
@@ -37,7 +41,7 @@ const RepayForm = (props: RepayProps) => {
     userAllowance,
     userDebt,
     loanToValue,
-    fetchedSolPrice,
+    fetchedReservePrice,
     currentMarketId,
     hideMobileSidebar,
     changeTab
@@ -49,9 +53,9 @@ const RepayForm = (props: RepayProps) => {
   const { toast, ToastComponent } = useToast();
   // constants && calculations
   const maxValue = userDebt != 0 ? userDebt : userAllowance;
-  const solPrice = fetchedSolPrice;
+  const reservePrice = fetchedReservePrice;
   const liquidationThreshold = COLLATERAL_FACTOR;
-  const SOLBalance = useSolBalance();
+  const bonkBalance = 0; //FETCH FROM WALLET
   const newDebt = userDebt - (valueSOL ? valueSOL : 0);
   const borrowedValue = userDebt;
   const liquidationPrice = userDebt / liquidationThreshold;
@@ -62,6 +66,7 @@ const RepayForm = (props: RepayProps) => {
   const newLiqPercent = nftPrice
     ? ((nftPrice - newLiquidationPrice) / nftPrice) * 100
     : 0;
+  const sdkConfig = ConfigureSDK();
 
   // Put your validators here
   const isRepayButtonDisabled = () => {
@@ -72,7 +77,7 @@ const RepayForm = (props: RepayProps) => {
     if (userDebt <= 0) return;
 
     setSliderValue(value);
-    setValueUSD(value * solPrice);
+    setValueUSD(value * reservePrice);
     setValueSOL(value);
   };
   // change of input - render calculated values
@@ -84,8 +89,8 @@ const RepayForm = (props: RepayProps) => {
       return;
     }
     setValueUSD(usdValue);
-    setValueSOL(usdValue / solPrice);
-    setSliderValue(usdValue / solPrice);
+    setValueSOL(usdValue / reservePrice);
+    setSliderValue(usdValue / reservePrice);
   };
   // change of input - render calculated values
   const handleSolInputChange = (solValue: number | undefined) => {
@@ -96,7 +101,7 @@ const RepayForm = (props: RepayProps) => {
       return;
     }
 
-    setValueUSD(solValue * solPrice);
+    setValueUSD(solValue * reservePrice);
     setValueSOL(solValue);
     setSliderValue(solValue);
   };
@@ -108,7 +113,11 @@ const RepayForm = (props: RepayProps) => {
       //   changeTab('borrow');
       // }
     } else {
-      executeRepay(valueSOL || 0, toast);
+      const metadata = await Metadata.findByMint(
+        sdkConfig.saberHqConnection,
+        openPositions[0].mint
+      );
+      executeRepay(valueSOL || 0, metadata.pubkey, toast);
       handleSliderChange(0);
     }
   };
@@ -163,14 +172,11 @@ const RepayForm = (props: RepayProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(nftPrice)}
+              value={fsn(nftPrice ?? 0)}
               valueSize="big"
               title={
                 <span className={hAlign}>
-                  Estimated value{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  Estimated value <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={
@@ -190,13 +196,10 @@ const RepayForm = (props: RepayProps) => {
           </div>
           <div className={styles.col}>
             <InfoBlock
-              value={fs(Number(frd(userAllowance)))}
+              value={fsn(userAllowance)}
               title={
                 <span className={hAlign}>
-                  Allowance{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  Allowance <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={`Allowance determines how much debt is available to a borrower. This market supports no more than ${fp(
@@ -209,7 +212,7 @@ const RepayForm = (props: RepayProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={fp(loanToValue * 100)}
+              value={fp(loanToValue)}
               toolTipLabel={
                 <span>
                   <a
@@ -226,9 +229,7 @@ const RepayForm = (props: RepayProps) => {
               title={
                 <span className={hAlign}>
                   Loan-to-Value %
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  <div className={questionIcon} />
                 </span>
               }
             />
@@ -247,10 +248,7 @@ const RepayForm = (props: RepayProps) => {
             <InfoBlock
               title={
                 <span className={hAlign}>
-                  New LTV %
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  New LTV %<div className={questionIcon} />
                 </span>
               }
               value={fp((newDebt / (nftPrice || 0)) * 100)}
@@ -288,12 +286,10 @@ const RepayForm = (props: RepayProps) => {
               title={
                 <span className={hAlign}>
                   Debt
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  <div className={questionIcon} />
                 </span>
               }
-              value={fs(userDebt)}
+              value={fsn(userDebt)}
               toolTipLabel={
                 <span>
                   Value borrowed from the lending pool, upon which interest
@@ -314,12 +310,10 @@ const RepayForm = (props: RepayProps) => {
               title={
                 <span className={hAlign}>
                   New debt
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  <div className={questionIcon} />
                 </span>
               }
-              value={fs(newDebt < 0 ? 0 : newDebt)}
+              value={fsn(newDebt < 0 ? 0 : newDebt)}
               isDisabled={userDebt == 0 ? true : false}
               toolTipLabel={
                 <span>
@@ -341,17 +335,14 @@ const RepayForm = (props: RepayProps) => {
         <div className={styles.row}>
           <div className={styles.col}>
             <InfoBlock
-              value={`${fs(liquidationPrice)} ${
+              value={`${fsn(liquidationPrice)} ${
                 userDebt ? `(-${liqPercent.toFixed(0)}%)` : ''
               }`}
               valueSize="normal"
               isDisabled={userDebt == 0 ? true : false}
               title={
                 <span className={hAlign}>
-                  Liquidation price{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  Liquidation price <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={
@@ -373,10 +364,7 @@ const RepayForm = (props: RepayProps) => {
               isDisabled={userDebt == 0 ? true : false}
               title={
                 <span className={hAlign}>
-                  New Liquidation price{' '}
-                  <div className={questionIcon}>
-                    <QuestionIcon />
-                  </div>
+                  New Liquidation price <div className={questionIcon} />
                 </span>
               }
               toolTipLabel={
@@ -392,7 +380,7 @@ const RepayForm = (props: RepayProps) => {
                   after the requested changes to the loan are approved.
                 </span>
               }
-              value={`${fs(newLiquidationPrice)} ${
+              value={`${fsn(newLiquidationPrice)} ${
                 userDebt ? `(-${newLiqPercent?.toFixed(0)}%)` : ''
               }`}
               valueSize="normal"
@@ -404,23 +392,38 @@ const RepayForm = (props: RepayProps) => {
           <div className={styles.row}>
             <div className={cs(styles.balance, styles.col)}>
               <InfoBlock
-                title={'Your SOL balance'}
-                value={fs(Number(frd(SOLBalance, 3)))}
+                title={'Your BONK balance'}
+                value={fsn(Number(frd(bonkBalance, 3)))}
               ></InfoBlock>
             </div>
             <div className={cs(styles.balance, styles.col)}>
               <InfoBlock
                 isDisabled={userDebt == 0 ? true : false}
-                title={'NEW SOL balance'}
-                value={fs(Number(frd(SOLBalance - (valueSOL || 0), 3)))}
+                title={'NEW BONK balance'}
+                value={fsn(Number(frd(bonkBalance - (valueSOL || 0), 3)))}
               ></InfoBlock>
             </div>
           </div>
           <InputsBlock
-            firstInputValue={valueSOL}
-            secondInputValue={valueUSD}
+            firstInputValue={Number(valueSOL?.toFixed())}
+            secondInputValue={Number(valueUSD?.toFixed())}
             onChangeFirstInput={handleSolInputChange}
             onChangeSecondInput={handleUsdInputChange}
+            firstInputAddon={
+              <Space align="center">
+                <div
+                  style={{
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    width: 20,
+                    height: 20
+                  }}
+                >
+                  <Image src={BonkIcon} width="100%" height="100%" />
+                </div>
+                BONK
+              </Space>
+            }
           />
         </div>
 
