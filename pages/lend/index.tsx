@@ -60,6 +60,7 @@ import { generateMockHistoryData } from '../../helpers/chartUtils';
 import { renderMarket, renderMarketImageByName } from 'helpers/marketHelpers';
 
 import { BONK_DECIMAL_DIVIDER } from 'constants/market';
+import { collectionCard } from 'styles/liquidation.css';
 // TODO: fetch based on config
 const network = 'mainnet-beta';
 const {
@@ -82,6 +83,7 @@ const Lend: NextPage = () => {
   const isMock = true;
   const [isMobileSidebarVisible, setShowMobileSidebar] = useState(false);
   const [tableData, setTableData] = useState<LendTableRow[]>([]);
+  const [utilizationRate, setUtilizationRate] = useState(0);
   const [tableDataFiltered, setTableDataFiltered] = useState<LendTableRow[]>(
     []
   );
@@ -390,6 +392,7 @@ const Lend: NextPage = () => {
                 collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
 
               collection.utilizationRate = utilization;
+              console.log('@@-- interest and util', interestRate, utilization);
               collection.rate = interestRate * utilization;
 
               collection.stats = getPositionData();
@@ -397,6 +400,7 @@ const Lend: NextPage = () => {
               // TODO: when scaling markets - loop through all markets and only fire
               // if current market id is equal to market id in loop
               setActiveMarketSupplied(collection.value);
+              setUtilizationRate(collection.utilizationRate);
               setActiveMarketAvailable(collection.available);
               setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
               collection.userTotalDeposits
@@ -524,7 +528,9 @@ const Lend: NextPage = () => {
         sorter: (a: any = 0, b: any = 0) => a.rate - b.rate,
         render: (rate: number, market: any) => {
           return (
-            <div className={c(style.rateCell, style.lendRate)}>{fp(rate)}</div>
+            <div className={c(style.rateCell, style.lendRate)}>
+              {fp(rate * utilizationRate)}
+            </div>
           );
         }
       },

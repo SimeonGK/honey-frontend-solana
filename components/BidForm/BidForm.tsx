@@ -40,13 +40,14 @@ const BidForm = (props: BidFormProps) => {
   } = props;
   // state declarations
   const [valueUSD, setValueUSD] = useState<number>(0);
+  z;
   const [valueSOL, setValueSOL] = useState<number>(0);
   const [sliderValue, setSliderValue] = useState(0);
   const [userBidValue, setUserBidValue] = useState(0);
   // import toast for responses
   const { toast, ToastComponent } = useToast();
   // set constants
-  const maxValue = 1000;
+  const maxValue = userBalance;
   const reservePrice = fetchedReservePrice;
   // Put your validators here
   const isSubmitButtonDisabled = () => {
