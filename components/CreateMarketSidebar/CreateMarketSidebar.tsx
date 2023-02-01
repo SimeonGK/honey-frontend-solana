@@ -9,6 +9,7 @@ import HowItWorksBorrowTab from 'components/HowItWorksBorrowTab/HowItWorksBorrow
 import { useLocker } from 'hooks/useVeHoney';
 
 import * as styles from './CreateMarketSidebar.css';
+import { useRouter } from 'next/router';
 
 const items: [HoneyTabItem, HoneyTabItem] = [
   { label: 'How it works', key: 'how_it_works' },
@@ -23,6 +24,7 @@ const CreateMarketSidebar: FC<CreateMarketSidebarProps> = (
 ) => {
   const { onCancel, wallet, honeyClient } = props;
   const { connect } = useWalletKit();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('how_it_works');
   const { votingPower } = useLocker();
   const requiredVeHONEY = 25;
@@ -94,7 +96,12 @@ const CreateMarketSidebar: FC<CreateMarketSidebarProps> = (
             description={`You need to ${
               requiredVeHONEY - veHoneyAmount
             }  more veHONEY to create a market`}
-            buttons={[{ title: 'GET VEHONEY', onClick: () => {} }]}
+            buttons={[
+              {
+                title: 'GET VEHONEY',
+                onClick: () => router.push('/governance')
+              }
+            ]}
           />
         )}
       </HoneyTabs>
