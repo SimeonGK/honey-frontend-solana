@@ -35,6 +35,7 @@ import {
 import { DialectProviders } from 'contexts/DialectProvider';
 import { PublicKey } from '@solana/web3.js';
 import Head from 'next/head';
+import { breakpoints } from 'styles/theme.css';
 // top level function that injects the app with a new market ID - being called from pages where interaction with markets is possible. Currently: borrow | lend | liquidate
 // export const setMarketId = (marketID: string) => marketID;
 
@@ -113,6 +114,21 @@ const HoneyJupiterProvider: FC<{ children: ReactNode }> = ({ children }) => {
   );
 };
 
+//Body tag don't have access to css variables so we use this for its background
+const lightThemeBackground = '#F5F5F5';
+const darkThemeBackground = '#111111';
+const duskThemeBackground = '#0d1116';
+export const getBackground = (theme: HoneyTheme) => {
+  switch (theme) {
+    case 'light':
+      return lightThemeBackground;
+    case 'dark':
+      return darkThemeBackground;
+    case 'dusk':
+      return duskThemeBackground;
+  }
+};
+
 interface HoneyThemeContext {
   theme: HoneyTheme;
   setTheme: (theme: HoneyTheme) => void;
@@ -129,12 +145,13 @@ function MyApp({ Component, pageProps }: AppProps) {
   const [theme, setTheme] = useState<HoneyTheme>('light');
 
   const onWindowResize = () => {
-    if (window.innerWidth < 768) {
+    if (window.innerWidth < breakpoints.mobile) {
       setIsMobile(true);
     } else {
       setIsMobile(false);
     }
   };
+
   useEffect(() => {
     const cautionAgreed = localStorage.getItem('caution-agreed');
     const savedTheme: any = localStorage.getItem('honey-theme');
@@ -148,6 +165,10 @@ function MyApp({ Component, pageProps }: AppProps) {
 
     return window.removeEventListener('resize', () => onWindowResize());
   }, []);
+
+  useEffect(() => {
+    document.body.style.background = getBackground(theme);
+  }, [theme]);
 
   if (!shouldRender) return null;
 

@@ -16,6 +16,12 @@ import * as styles from './SettingsModal.css';
 const SettingsModal = (props: { visible: boolean; onClose: Function }) => {
   const { theme, setTheme } = useContext(HoneyThemeContext);
   const { setMode } = useTheme();
+
+  const onThemeChange = (value: HoneyTheme) => {
+    setTheme(value);
+    setMode(['dark', 'dusk'].includes(theme) ? 'dark' : 'light');
+  };
+
   return (
     <ModalContainer isVisible={props.visible} onClose={props.onClose}>
       <HoneyCardYellowShadow>
@@ -150,10 +156,7 @@ const SettingsModal = (props: { visible: boolean; onClose: Function }) => {
                   fill={['dark', 'dusk'].includes(theme) ? 'gray' : 'black'}
                 />
               }
-              onChange={value => {
-                setTheme(value);
-                setMode(['dark', 'dusk'].includes(theme) ? 'dark' : 'light');
-              }}
+              onChange={onThemeChange}
             />
           </Space>
         </Space>
