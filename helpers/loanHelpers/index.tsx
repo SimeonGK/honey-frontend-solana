@@ -21,6 +21,7 @@ export function ConfigureSDK() {
     honeyId: HONEY_PROGRAM_ID
   };
 }
+
 /**
  * @description exports function that validates if input is number
  * @params user input
