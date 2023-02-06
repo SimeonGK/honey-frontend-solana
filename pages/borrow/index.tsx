@@ -105,6 +105,27 @@ const {
   formatShortName: fsn
 } = formatNumber;
 
+// export async function getStaticProps() {
+//   console.log('@@-- running 1');
+//   const createConnection = () => {
+//     return new Connection(clusterApiUrl('mainnet-beta'));
+//   };
+
+//   console.log('@@-- running 2', createConnection);
+
+//   const ssrMarketData = await fetchAllMarkets(
+//     createConnection(),
+//     null,
+//     HONEY_PROGRAM_ID,
+//     marketIDs,
+//     false
+//   );
+
+//   console.log('ssrMarket', ssrMarketData);
+
+//   return { props: { ssrMarketData }, revalidate: 30 };
+// }
+
 const Markets: NextPage = (props: MarketProps) => {
   // Sets market ID which is used for fetching market specific data
   // each market currently is a different call and re-renders the page
@@ -262,7 +283,7 @@ const Markets: NextPage = (props: MarketProps) => {
    * @params none
    * @returns market object filled with data
    */
-  useEffect(() => {
+  useMemo(() => {
     if (sdkConfig.saberHqConnection) {
       function getData() {
         return Promise.all(
