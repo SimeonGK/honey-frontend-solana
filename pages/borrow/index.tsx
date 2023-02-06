@@ -233,7 +233,7 @@ const Markets: NextPage = (props: MarketProps) => {
 
   useEffect(() => {
     fetchAllMarketData(marketIDs);
-  });
+  }, []);
 
   // if there are open positions for the user -> set the open positions
   useEffect(() => {
@@ -280,7 +280,7 @@ const Markets: NextPage = (props: MarketProps) => {
               const honeyClient = collection.marketData[0].client;
               const parsedReserves = collection.marketData[0].reserves[0].data;
               const mData = collection.marketData[0].reserves[0];
-
+              console.log('@@-- running pop.');
               await populateMarketData(
                 'BORROW',
                 collection,
