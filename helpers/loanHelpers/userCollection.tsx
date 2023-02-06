@@ -419,6 +419,7 @@ export async function populateMarketData(
       parsedReserves,
       mData
     );
+  } else {
+    return collection;
   }
-  return collection;
 }
