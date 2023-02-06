@@ -7,6 +7,7 @@ import * as style from '../../styles/markets.css';
 import c from 'classnames';
 import classNames from 'classnames';
 import BN from 'bn.js';
+import useSwr from 'swr';
 import {
   BorrowSidebarMode,
   HoneyTableColumnType,
@@ -32,7 +33,12 @@ import EmptyStateDetails from 'components/EmptyStateDetails/EmptyStateDetails';
 import { getColumnSortStatus } from '../../helpers/tableUtils';
 import { useConnectedWallet, useSolana } from '@saberhq/use-solana';
 import { BnToDecimal, ConfigureSDK } from '../../helpers/loanHelpers/index';
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import {
+  Connection,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  clusterApiUrl
+} from '@solana/web3.js';
 import HealthLvl from '../../components/HealthLvl/HealthLvl';
 import useFetchNFTByUser from 'hooks/useNFTV2';
 import {
@@ -62,7 +68,9 @@ import { pageDescription, pageTitle } from 'styles/common.css';
 import HoneyTableRow from 'components/HoneyTable/HoneyTableRow/HoneyTableRow';
 import HoneyTableNameCell from '../../components/HoneyTable/HoneyTableNameCell/HoneyTableNameCell';
 import {
+  HONEY_PROGRAM_ID,
   marketCollections,
+  marketIDs,
   OpenPositions
 } from '../../helpers/marketHelpers/index';
 import HoneyTooltip from '../../components/HoneyTooltip/HoneyTooltip';
@@ -88,6 +96,7 @@ const network = 'mainnet-beta';
 import { featureFlags } from 'helpers/featureFlags';
 import SorterIcon from 'icons/Sorter';
 import ExpandedRowIcon from 'icons/ExpandedRowIcon';
+import { MarketProps } from './types';
 // import { network } from 'pages/_app';
 const {
   format: f,
@@ -96,7 +105,7 @@ const {
   formatShortName: fsn
 } = formatNumber;
 
-const Markets: NextPage = () => {
+const Markets: NextPage = (props: MarketProps) => {
   // Sets market ID which is used for fetching market specific data
   // each market currently is a different call and re-renders the page
   const [currentMarketId, setCurrentMarketId] = useState(
@@ -105,6 +114,7 @@ const Markets: NextPage = () => {
   // init wallet and sdkConfiguration file
   const wallet = useConnectedWallet() || null;
   const sdkConfig = ConfigureSDK();
+
   const { disconnect } = useSolana();
   const [sidebarMode, setSidebarMode] = useState<BorrowSidebarMode>(
     BorrowSidebarMode.MARKET
@@ -218,14 +228,12 @@ const Markets: NextPage = () => {
       marketIDs,
       false
     );
-
     setMarketData(data as unknown as MarketBundle[]);
   }
 
   useEffect(() => {
-    const marketIDs = marketCollections.map(market => market.id);
     fetchAllMarketData(marketIDs);
-  }, []);
+  });
 
   // if there are open positions for the user -> set the open positions
   useEffect(() => {
@@ -235,6 +243,8 @@ const Markets: NextPage = () => {
       setUserOpenPositions([]);
     }
   }, [collateralNFTPositions]);
+
+  // console.log('this is props', props);
 
   // function is setup to handle an array for all markets and return based on specific market by verified creator
   async function handlePositions(
@@ -259,7 +269,7 @@ const Markets: NextPage = () => {
           marketCollections.map(async collection => {
             if (collection.id == '') return collection;
 
-            if (marketData.length) {
+            if (marketData && marketData.length) {
               collection.marketData = marketData.filter(
                 marketObject =>
                   marketObject.market.address.toString() === collection.id
