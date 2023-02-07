@@ -216,7 +216,6 @@ async function configureCollectionObjecet(
     tvl: BN;
     totalMarketDeposits: any;
     totalMarketValue: any;
-    connection: any;
     honeyUser: HoneyUser;
     nftPrice: any;
     obligations: any;
@@ -234,7 +233,6 @@ async function configureCollectionObjecet(
     tvl,
     totalMarketDeposits,
     totalMarketValue,
-    connection,
     honeyUser,
     nftPrice,
     obligations,
@@ -252,7 +250,6 @@ async function configureCollectionObjecet(
       collection.userDebt = userDebt.toString();
       collection.available = totalMarketDeposits;
       collection.value = totalMarketValue;
-      collection.connection = connection;
       collection.user = honeyUser;
       collection.nftPrice = nftPrice;
       collection.ltv = ltv;
@@ -294,7 +291,6 @@ async function configureCollectionObjecet(
       collection.ltv = ltv.toString();
       collection.available = totalMarketDeposits;
       collection.value = totalMarketValue;
-      collection.connection = connection;
       collection.nftPrice = nftPrice;
       collection.rate = interestRate * 100;
       collection.user = honeyUser;
@@ -308,7 +304,6 @@ async function configureCollectionObjecet(
       collection.ltv = ltv.toString();
       collection.available = totalMarketDeposits;
       collection.value = totalMarketValue;
-      collection.connection = connection;
       collection.nftPrice = nftPrice;
       collection.userTotalDeposits = userTotalDeposits.toString();
       // TODO: fix util rate based off object coming in
@@ -324,29 +319,23 @@ async function handleFormatMarket(
   origin: string,
   collection: any,
   currentMarketId: string,
-  liquidations: boolean,
   obligations: any,
-  honeyUser: HoneyUser,
-  honeyClient: HoneyClient,
-  honeyMarket: HoneyMarket,
-  connection: Connection,
-  parsedReserves: TReserve,
-  mData?: any
+  honeyUser: HoneyUser
 ) {
-  const totalMarketDebt = mData
-    ? await mData.getReserveState().outstandingDebt
-    : 0;
-
-  const totalMarketDeposits = mData
-    ? await mData.getReserveState().totalDeposits
-    : 0;
-
-  const { utilization, interestRate } =
-    await collection.marketData[0].reserves[0].getUtilizationAndInterestRate();
+  const totalMarketDebt =
+    collection.marketData[0].totalMarketDebt.outstandingDebt;
+  // const totalMarketDebt = collection.totalMarketDebt.outstandingDebt
+  //   ? collection.totalMarketDebt.outstandingDebt
+  //   : 0;
+  const totalMarketDeposits = collection.marketData[0].totalMarketDeposits;
+  const interestRate = collection.marketData[0].interestRate;
+  const utilization = collection.marketData[0].utilization;
+  const nftPrice = collection.marketData[0].nftPrice;
+  const liquidationThreshold = collection.marketData[0].liquidationThreshold;
+  // TODO: should not be able to fetch SSR? must deduct userdebt
+  // const allowance = collection.allowance;
 
   const totalMarketValue = totalMarketDeposits + totalMarketDebt;
-
-  const nftPrice = await honeyMarket.fetchNFTFloorPriceInReserve(0);
   collection.nftPrice = nftPrice;
 
   const allowanceAndDebt = await honeyUser.fetchAllowanceAndDebt(
@@ -357,6 +346,8 @@ async function handleFormatMarket(
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
   const userTotalDeposits = await honeyUser.fetchUserDeposits(0);
 
+  console.log('@@-- allowance and debt', allowanceAndDebt);
+
   return await configureCollectionObjecet(origin, collection, {
     allowance: allowanceAndDebt.allowance,
     userDebt: allowanceAndDebt.debt,
@@ -364,7 +355,6 @@ async function handleFormatMarket(
     tvl,
     totalMarketDeposits,
     totalMarketValue,
-    connection,
     honeyUser,
     nftPrice,
     obligations,
@@ -384,40 +374,21 @@ async function handleFormatMarket(
 export async function populateMarketData(
   origin: string,
   collection: MarketTableRow,
-  connection: Connection,
-  wallet: ConnectedWallet | null,
   currentMarketId: string,
-  liquidations: boolean,
   obligations: any,
   hasMarketData: boolean,
-  honeyClient?: HoneyClient,
-  honeyMarket?: HoneyMarket,
-  honeyUser?: HoneyUser,
-  parsedReserves?: TReserve,
-  mData?: any
+  honeyUser?: HoneyUser
 ) {
   // create dummy keypair if no wallet is connected to fetch values of the collections regardless of connected wallet
-  let dummyWallet = wallet ? wallet : new NodeWallet(new Keypair());
+  // let dummyWallet = wallet ? wallet : new NodeWallet(new Keypair());
 
-  if (
-    hasMarketData &&
-    honeyClient &&
-    honeyMarket &&
-    honeyUser &&
-    parsedReserves
-  ) {
+  if (hasMarketData && honeyUser) {
     return await handleFormatMarket(
       origin,
       collection,
       currentMarketId,
-      liquidations,
       obligations,
-      honeyUser,
-      honeyClient,
-      honeyMarket,
-      connection,
-      parsedReserves,
-      mData
+      honeyUser
     );
   } else {
     return collection;
