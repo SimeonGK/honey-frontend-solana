@@ -97,7 +97,6 @@ const network = 'mainnet-beta';
 import { featureFlags } from 'helpers/featureFlags';
 import SorterIcon from 'icons/Sorter';
 import ExpandedRowIcon from 'icons/ExpandedRowIcon';
-import { MarketProps } from './types';
 // import { network } from 'pages/_app';
 const {
   format: f,
