@@ -314,7 +314,7 @@ const Lend: NextPage = () => {
         return toast.error('Withdraw failed ');
       }
     } catch (error) {
-      return toast.error('Withdraw failed ', error);
+      return toast.error('Withdraw failed ');
     }
   }
 

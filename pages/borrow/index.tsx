@@ -343,8 +343,6 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 marketObject => marketObject.marketId === collection.id
               );
 
-              console.log('@@-- collection', collection.marketData);
-
               await populateMarketData(
                 'BORROW',
                 collection,
@@ -947,7 +945,9 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       const borrowTokenMint = new PublicKey(
         'So11111111111111111111111111111111111111112'
       );
+
       toast.processing();
+
       const tx = await borrowAndRefresh(
         honeyUser,
         new BN(val * LAMPORTS_PER_SOL),
@@ -957,7 +957,6 @@ const Markets: NextPage = ({ res }: { res: any }) => {
 
       if (tx[0] == 'SUCCESS') {
         const confirmation = tx[1];
-        const confirmationHash = confirmation[1];
 
         if (fetchedDataObject) {
           await fetchedDataObject.reserves[0].refresh();
@@ -984,11 +983,11 @@ const Markets: NextPage = ({ res }: { res: any }) => {
           );
         }
       } else {
-        console.log('error tx', tx);
+        console.log('@@-- tx error', tx);
         return toast.error('Borrow failed', tx);
       }
     } catch (error) {
-      return toast.error('An error occurred', error);
+      return toast.error('An error occurred');
     }
   }
 
