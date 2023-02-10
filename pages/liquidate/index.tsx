@@ -51,8 +51,8 @@ import { NATIVE_MINT } from '@solana/spl-token-v-0.1.8';
 import HoneySider from 'components/HoneySider/HoneySider';
 import HoneyContent from 'components/HoneyContent/HoneyContent';
 import { hideTablet, showTablet } from 'styles/markets.css';
-import { pageDescription, pageTitle } from 'styles/common.css';
-import { Typography } from 'antd';
+import { pageDescription, pageTitle, center } from 'styles/common.css';
+import { Skeleton, Typography } from 'antd';
 import { ToastProps } from 'hooks/useToast';
 import HoneyTableRow from 'components/HoneyTable/HoneyTableRow/HoneyTableRow';
 import HoneyTableNameCell from 'components/HoneyTable/HoneyTableNameCell/HoneyTableNameCell';
@@ -62,6 +62,7 @@ import { populateMarketData } from 'helpers/loanHelpers/userCollection';
 import { MarketTableRow } from 'types/markets';
 import { renderMarket, renderMarketImageByName } from 'helpers/marketHelpers';
 import { network } from 'pages/_app';
+import SorterIcon from 'icons/Sorter';
 
 const { formatPercent: fp, formatSol: fs, formatRoundDown: fd } = formatNumber;
 const Liquidate: NextPage = () => {
@@ -76,16 +77,17 @@ const Liquidate: NextPage = () => {
   const [isMobileSidebarVisible, setShowMobileSidebar] = useState(false);
   const [biddingArray, setBiddingArray] = useState({});
   const [marketData, setMarketData] = useState<MarketBundle[]>([]);
-  const [tableData, setTableData] = useState<MarketTableRow[]>([]);
+  const [tableData, setTableData] =
+    useState<MarketTableRow[]>(marketCollections);
   const [expandedRowKeys, setExpandedRowKeys] = useState<readonly Key[]>([]);
   const [isMyBidsFilterEnabled, setIsMyBidsFilterEnabled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [tableDataFiltered, setTableDataFiltered] = useState<MarketTableRow[]>(
-    []
-  );
+  const [tableDataFiltered, setTableDataFiltered] =
+    useState<MarketTableRow[]>(marketCollections);
   const [currentMarketId, setCurrentMarketId] = useState(
     HONEY_GENESIS_MARKET_ID
   );
+  const [isFetchingData, setIsFetchingData] = useState(true);
   // init anchor
   const { program } = useAnchor();
   // init sdk config obj
@@ -508,22 +510,20 @@ const Liquidate: NextPage = () => {
                 setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
               return collection;
             } else {
-              marketCollections.map(async collection => {
-                await populateMarketData(
-                  'LIQUIDATIONS',
-                  collection,
-                  sdkConfig.saberHqConnection,
-                  sdkConfig.sdkWallet,
-                  currentMarketId,
-                  true,
-                  [],
-                  true,
-                  honeyClient,
-                  honeyMarket,
-                  honeyUser,
-                  parsedReserves
-                );
-              });
+              await populateMarketData(
+                'LIQUIDATIONS',
+                collection,
+                sdkConfig.saberHqConnection,
+                sdkConfig.sdkWallet,
+                currentMarketId,
+                true,
+                [],
+                true,
+                honeyClient,
+                honeyMarket,
+                honeyUser,
+                parsedReserves
+              );
               return collection;
             }
           })
@@ -531,6 +531,7 @@ const Liquidate: NextPage = () => {
       }
 
       getData().then(result => {
+        setIsFetchingData(false);
         setTableData(result);
         setTableDataFiltered(result);
       });
@@ -652,15 +653,22 @@ const Liquidate: NextPage = () => {
               style={{ paddingLeft: 15 }}
             >
               <span>Risk</span>
-              <div className={style.sortIcon[sortOrder]} />
+              <div className={style.sortIcon[sortOrder]}>
+                <SorterIcon active={sortOrder !== 'disabled'} />
+              </div>
             </div>
           );
         },
         dataIndex: 'risk',
         sorter: (a, b) => a.risk! - b.risk!,
-        render: (rate: number, market: any) => {
-          return <div className={style.rateCell}>{fp(market.risk * 100)}</div>;
-        }
+        render: (rate: number, market: any) =>
+          isFetchingData ? (
+            <div className={center}>
+              <Skeleton.Button size="small" active />
+            </div>
+          ) : (
+            <div className={style.rateCell}>{fp(market.risk * 100)}</div>
+          )
       },
       {
         width: columnsWidth[2],
@@ -676,7 +684,9 @@ const Liquidate: NextPage = () => {
               style={{ paddingLeft: 15 }}
             >
               <span>Liq %</span>
-              <div className={style.sortIcon[sortOrder]} />
+              <div className={style.sortIcon[sortOrder]}>
+                <SorterIcon active={sortOrder !== 'disabled'} />
+              </div>
             </div>
           );
         },
@@ -702,14 +712,20 @@ const Liquidate: NextPage = () => {
               style={{ paddingLeft: 15 }}
             >
               <span>Total Debt</span>{' '}
-              <div className={style.sortIcon[sortOrder]} />
+              <div className={style.sortIcon[sortOrder]}>
+                <SorterIcon active={sortOrder !== 'disabled'} />
+              </div>
             </div>
           );
         },
         dataIndex: 'totalDebt',
         sorter: (a, b) => a.totalDebt! - b.totalDebt!,
         render: (available: number, market) => {
-          return (
+          return isFetchingData ? (
+            <div className={center}>
+              <Skeleton.Button size="small" active />
+            </div>
+          ) : (
             <div className={style.availableCell}>{fs(market.totalDebt)}</div>
           );
         }
@@ -728,15 +744,22 @@ const Liquidate: NextPage = () => {
               style={{ paddingLeft: 15 }}
             >
               <span>TVL</span>
-              <div className={style.sortIcon[sortOrder]} />
+              <div className={style.sortIcon[sortOrder]}>
+                <SorterIcon active={sortOrder !== 'disabled'} />
+              </div>
             </div>
           );
         },
         dataIndex: 'tvl',
         sorter: (a, b) => a.tvl! - b.tvl!,
-        render: (value: number, market: any) => {
-          return <div className={style.valueCell}>{fs(market.tvl)}</div>;
-        }
+        render: (value: number, market: any) =>
+          isFetchingData ? (
+            <div className={center}>
+              <Skeleton.Button size="small" active />
+            </div>
+          ) : (
+            <div className={style.valueCell}>{fs(market.tvl)}</div>
+          )
       },
       {
         width: columnsWidth[5],
@@ -761,7 +784,7 @@ const Liquidate: NextPage = () => {
         }
       }
     ],
-    [isMyBidsFilterEnabled, tableData, searchQuery]
+    [isMyBidsFilterEnabled, tableData, isFetchingData, searchQuery]
   );
   // Render Mobile Configuration
   const columnsMobile: ColumnType<LiquidateTableRow>[] = useMemo(
@@ -859,7 +882,9 @@ const Liquidate: NextPage = () => {
               // we use our own custom expand column
               showExpandColumn: false,
               onExpand: (expanded, row) =>
-                setExpandedRowKeys(expanded ? [row.key] : []),
+                setExpandedRowKeys(
+                  expanded && !isFetchingData ? [row.key] : []
+                ),
               expandedRowKeys,
               expandedRowRender: record => {
                 return (

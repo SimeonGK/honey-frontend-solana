@@ -66,8 +66,8 @@ import HoneyContent from '../../components/HoneyContent/HoneyContent';
 import HoneySider from '../../components/HoneySider/HoneySider';
 import { TABLET_BP } from '../../constants/breakpoints';
 import useWindowSize from '../../hooks/useWindowSize';
-import { Typography } from 'antd';
-import { pageDescription, pageTitle } from 'styles/common.css';
+import { Skeleton, Typography } from 'antd';
+import { pageDescription, pageTitle, center } from 'styles/common.css';
 import HoneyTableRow from 'components/HoneyTable/HoneyTableRow/HoneyTableRow';
 import HoneyTableNameCell from '../../components/HoneyTable/HoneyTableNameCell/HoneyTableNameCell';
 import {
@@ -174,16 +174,17 @@ const Markets: NextPage = () => {
   const [activeInterestRate, setActiveInterestRate] = useState(0);
   // interface related constants
   const { width: windowWidth } = useWindowSize();
-  const [tableData, setTableData] = useState<MarketTableRow[]>([]);
+  const [tableData, setTableData] =
+    useState<MarketTableRow[]>(marketCollections);
   const [fetchedDataObject, setFetchedDataObject] = useState<MarketBundle>();
-  const [tableDataFiltered, setTableDataFiltered] = useState<MarketTableRow[]>(
-    []
-  );
+  const [tableDataFiltered, setTableDataFiltered] =
+    useState<MarketTableRow[]>(marketCollections);
   const [expandedRowKeys, setExpandedRowKeys] = useState<readonly Key[]>([]);
   const [isMyCollectionsFilterEnabled, setIsMyCollectionsFilterEnabled] =
     useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarVisible, setShowMobileSidebar] = useState(false);
+  const [isFetchingData, setIsFetchingData] = useState(true);
 
   /**
    * @description fetches all nfts in users wallet
@@ -274,6 +275,7 @@ const Markets: NextPage = () => {
   useEffect(() => {
     if (sdkConfig.saberHqConnection) {
       function getData() {
+        setIsFetchingData(true);
         return Promise.all(
           marketCollections.map(async collection => {
             if (collection.id == '') return collection;
@@ -356,6 +358,7 @@ const Markets: NextPage = () => {
       }
 
       getData().then(result => {
+        setIsFetchingData(false);
         setTableData(result);
         setTableDataFiltered(result);
       });
@@ -485,13 +488,16 @@ const Markets: NextPage = () => {
               key: 'rate',
               hidden: windowWidth < TABLET_BP,
               ellipsis: true,
-              render: (rate: number) => {
-                return (
+              render: (rate: number) =>
+                isFetchingData ? (
+                  <div className={center}>
+                    <Skeleton.Button size="small" active />
+                  </div>
+                ) : (
                   <div className={c(style.rateCell, style.borrowRate)}>
                     {fp(rate)}
                   </div>
-                );
-              }
+                )
             }
           ],
           sorter: (a: MarketTableRow, b: MarketTableRow) => a.rate - b.rate
@@ -521,9 +527,14 @@ const Markets: NextPage = () => {
               dataIndex: 'value',
               key: 'value',
               hidden: windowWidth < TABLET_BP,
-              render: (value: number) => {
-                return <div className={style.valueCell}>{fs(value)}</div>;
-              }
+              render: (value: number) =>
+                isFetchingData ? (
+                  <div className={center}>
+                    <Skeleton.Button size="small" active />
+                  </div>
+                ) : (
+                  <div className={style.valueCell}>{fs(value)}</div>
+                )
             }
           ],
           sorter: (a: MarketTableRow, b: MarketTableRow) =>
@@ -553,11 +564,14 @@ const Markets: NextPage = () => {
             {
               dataIndex: 'available',
               key: 'available',
-              render: (available: number, data: MarketTableRow) => {
-                return (
+              render: (available: number, data: MarketTableRow) =>
+                isFetchingData ? (
+                  <div className={center}>
+                    <Skeleton.Button size="small" active />
+                  </div>
+                ) : (
                   <div className={style.availableCell}>{fs(available)}</div>
-                );
-              }
+                )
             }
           ],
           sorter: (a: MarketTableRow, b: MarketTableRow) => a.value - b.value,
@@ -628,9 +642,33 @@ const Markets: NextPage = () => {
                 }
               />
               <HoneyTableRow>
-                <div className={style.rateCell}>{fp(row.rate)}</div>
-                <div className={style.availableCell}>{fs(row.value)}</div>
-                <div className={style.availableCell}>{fs(row.available)}</div>
+                <div className={style.rateCell}>
+                  {isFetchingData ? (
+                    <div className={center}>
+                      <Skeleton.Button size="small" active />
+                    </div>
+                  ) : (
+                    fp(row.rate)
+                  )}
+                </div>
+                <div className={style.availableCell}>
+                  {isFetchingData ? (
+                    <div className={center}>
+                      <Skeleton.Button size="small" active />
+                    </div>
+                  ) : (
+                    fs(row.value)
+                  )}
+                </div>
+                <div className={style.availableCell}>
+                  {isFetchingData ? (
+                    <div className={center}>
+                      <Skeleton.Button size="small" active />
+                    </div>
+                  ) : (
+                    fs(row.available)
+                  )}
+                </div>
               </HoneyTableRow>
             </>
           );
@@ -1133,7 +1171,9 @@ const Markets: NextPage = () => {
               // we use our own custom expand column
               showExpandColumn: false,
               onExpand: (expanded, row) => {
-                setExpandedRowKeys(expanded ? [row.key] : []);
+                setExpandedRowKeys(
+                  expanded && !isFetchingData ? [row.key] : []
+                );
               },
               expandedRowKeys,
               expandedRowRender: record => {
@@ -1207,7 +1247,9 @@ const Markets: NextPage = () => {
               // we use our own custom expand column
               showExpandColumn: false,
               onExpand: (expanded, row) =>
-                setExpandedRowKeys(expanded ? [row.key] : []),
+                setExpandedRowKeys(
+                  expanded && !isFetchingData ? [row.key] : []
+                ),
               expandedRowKeys,
               expandedRowRender: record => {
                 return (
