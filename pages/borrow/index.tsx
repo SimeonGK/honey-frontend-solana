@@ -996,7 +996,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
     try {
       if (!val) return toast.error('Please provide a value');
       // add additional value if user wants to repay 100% of loan due to interest rate not being included
-      if (val == userDebt) val += 1;
+      if (val == userDebt) val += 0.1;
       // TODO: make dynamic - marketCollections or fetchAllMarkets
       const repayTokenMint = new PublicKey(
         'So11111111111111111111111111111111111111112'
