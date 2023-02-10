@@ -261,6 +261,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
   const [tableDataFiltered, setTableDataFiltered] = useState<MarketTableRow[]>(
     []
   );
+
   const [expandedRowKeys, setExpandedRowKeys] = useState<readonly Key[]>([]);
   const [isMyCollectionsFilterEnabled, setIsMyCollectionsFilterEnabled] =
     useState(false);
@@ -311,8 +312,6 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       setUserOpenPositions([]);
     }
   }, [collateralNFTPositions]);
-
-  // console.log('this is props', props);
 
   // function is setup to handle an array for all markets and return based on specific market by verified creator
   async function handlePositions(
