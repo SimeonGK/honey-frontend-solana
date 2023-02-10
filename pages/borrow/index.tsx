@@ -329,7 +329,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
    * @params none
    * @returns market object filled with data
    */
-  useMemo(() => {
+  useEffect(() => {
     if (sdkConfig.saberHqConnection) {
       function getData() {
         return Promise.all(
@@ -355,8 +355,10 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 collection.verifiedCreator,
                 userOpenPositions
               );
+              collection.connection = sdkConfig.saberHqConnection;
 
               if (currentMarketId === collection.id) {
+                console.log('@@-- collection', collection);
                 setActiveInterestRate(collection.rate);
                 // @ts-ignore
                 setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
@@ -822,12 +824,11 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       toast.processing();
       // TODO: set verified creator of active market along with currentMarketId
       marketCollections.map(async collection => {
-        if (collection.verifiedCreator === creator) {
+        if (collection.id === currentMarketId) {
           const metadata = await Metadata.findByMint(
             collection.connection,
             mintID
           );
-
           const tx = await depositNFT(
             collection.connection,
             honeyUser,
@@ -843,27 +844,19 @@ const Markets: NextPage = ({ res }: { res: any }) => {
               confirmationHash
             );
 
-            if (collection.marketData) {
-              await collection.marketData[0].reserves[0].refresh();
-              await collection.marketData[0].user.refresh();
+            await collection.user.reserves[0].refresh();
+            await collection.user.refresh();
 
-              await refreshPositions();
-              refetchNfts({});
+            await refreshPositions();
+            refetchNfts({});
 
-              toast.success(
-                'Deposit success',
-                `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-              );
-            } else {
-              await refreshPositions();
-              refetchNfts({});
-
-              toast.success(
-                'Deposit success',
-                `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-              );
-            }
+            toast.success(
+              'Deposit success',
+              `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+            );
           }
+        } else {
+          toast.error('Deposit failed');
         }
       });
     } catch (error) {
@@ -884,48 +877,56 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       if (!mintID) return toast.error('Please select NFT');
       toast.processing();
 
-      const metadata = await Metadata.findByMint(
-        sdkConfig.saberHqConnection,
-        mintID
-      );
-      const tx = await withdrawNFT(
-        sdkConfig.saberHqConnection,
-        honeyUser,
-        metadata.pubkey
-      );
-
-      if (tx[0] == 'SUCCESS') {
-        const confirmation = tx[1];
-        const confirmationHash = confirmation[0];
-
-        await waitForConfirmation(
-          sdkConfig.saberHqConnection,
-          confirmationHash
-        );
-
-        if (fetchedDataObject) {
-          await fetchedDataObject.reserves[0].refresh();
-          await fetchedDataObject.user.refresh();
-
-          await refreshPositions();
-          refetchNfts({});
-
-          toast.success(
-            'Withdraw success',
-            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+      marketCollections.map(async collection => {
+        if (collection.id === currentMarketId) {
+          const metadata = await Metadata.findByMint(
+            sdkConfig.saberHqConnection,
+            mintID
           );
-        } else {
-          await refreshPositions();
-          refetchNfts({});
-
-          toast.success(
-            'Withdraw success',
-            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+          const tx = await withdrawNFT(
+            sdkConfig.saberHqConnection,
+            honeyUser,
+            metadata.pubkey
           );
+
+          if (tx[0] == 'SUCCESS') {
+            const confirmation = tx[1];
+            const confirmationHash = confirmation[0];
+
+            await waitForConfirmation(
+              sdkConfig.saberHqConnection,
+              confirmationHash
+            );
+
+            if (collection.marketData) {
+              await collection.user.reserves[0].refresh();
+              await collection.user.refresh();
+
+              await refreshPositions();
+              refetchNfts({});
+
+              toast.success(
+                'Withdraw success',
+                `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+              );
+            } else {
+              await refreshPositions();
+              refetchNfts({});
+
+              toast.success(
+                'Withdraw success',
+                `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+              );
+            }
+          } else {
+            toast.error(
+              'Error in withdraw',
+              `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+            );
+          }
         }
-      }
-
-      return true;
+        return true;
+      });
     } catch (error) {
       toast.error('Error withdraw NFT');
       return;
@@ -946,45 +947,39 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       );
 
       toast.processing();
-
-      const tx = await borrowAndRefresh(
-        honeyUser,
-        new BN(val * LAMPORTS_PER_SOL),
-        borrowTokenMint,
-        honeyReserves
-      );
-
-      if (tx[0] == 'SUCCESS') {
-        const confirmation = tx[1];
-
-        if (fetchedDataObject) {
-          await fetchedDataObject.reserves[0].refresh();
-          await fetchedDataObject.user.refresh();
-
-          await refreshPositions();
-          refetchNfts({});
-
-          reserveHoneyState === 0
-            ? setReserveHoneyState(1)
-            : setReserveHoneyState(0);
-
-          toast.success(
-            'Borrow success',
-            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+      marketCollections.map(async collection => {
+        if (collection.id === currentMarketId) {
+          const tx = await borrowAndRefresh(
+            honeyUser,
+            new BN(val * LAMPORTS_PER_SOL),
+            borrowTokenMint,
+            honeyReserves
           );
-        } else {
-          await refreshPositions();
-          refetchNfts({});
 
-          toast.success(
-            'Borrow success',
-            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-          );
+          if (tx[0] == 'SUCCESS') {
+            const confirmation = tx[1];
+            // await fetchedDataObject.reserves[0].refresh();
+            // await fetchedDataObject.user.refresh();
+            await collection.user.reserves[0].refresh();
+            await collection.user.refresh();
+
+            await refreshPositions();
+            refetchNfts({});
+
+            reserveHoneyState === 0
+              ? setReserveHoneyState(1)
+              : setReserveHoneyState(0);
+
+            toast.success(
+              'Borrow success',
+              `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+            );
+          } else {
+            console.log('@@-- tx error');
+            return toast.error('Borrow failed');
+          }
         }
-      } else {
-        console.log('@@-- tx error', tx);
-        return toast.error('Borrow failed', tx);
-      }
+      });
     } catch (error) {
       return toast.error('An error occurred');
     }
@@ -1007,49 +1002,53 @@ const Markets: NextPage = ({ res }: { res: any }) => {
         'So11111111111111111111111111111111111111112'
       );
       toast.processing();
-      const tx = await repayAndRefresh(
-        honeyUser,
-        new BN(val * LAMPORTS_PER_SOL),
-        repayTokenMint,
-        honeyReserves
-      );
-
-      if (tx[0] == 'SUCCESS') {
-        const confirmation = tx[1];
-        const confirmationHash = confirmation[1];
-
-        await waitForConfirmation(
-          sdkConfig.saberHqConnection,
-          confirmationHash
-        );
-
-        if (fetchedDataObject) {
-          await fetchedDataObject.reserves[0].refresh();
-          await fetchedDataObject.user.refresh();
-
-          await refreshPositions();
-          refetchNfts({});
-
-          reserveHoneyState === 0
-            ? setReserveHoneyState(1)
-            : setReserveHoneyState(0);
-
-          toast.success(
-            'Repay success',
-            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+      marketCollections.map(async collection => {
+        if (collection.id === currentMarketId) {
+          const tx = await repayAndRefresh(
+            honeyUser,
+            new BN(val * LAMPORTS_PER_SOL),
+            repayTokenMint,
+            honeyReserves
           );
-        } else {
-          await refreshPositions();
-          refetchNfts({});
 
-          toast.success(
-            'Repay success',
-            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-          );
+          if (tx[0] == 'SUCCESS') {
+            const confirmation = tx[1];
+            const confirmationHash = confirmation[1];
+
+            await waitForConfirmation(
+              sdkConfig.saberHqConnection,
+              confirmationHash
+            );
+
+            if (collection.marketData) {
+              await collection.user.reserves[0].refresh();
+              await collection.user.refresh();
+
+              await refreshPositions();
+              refetchNfts({});
+
+              reserveHoneyState === 0
+                ? setReserveHoneyState(1)
+                : setReserveHoneyState(0);
+
+              toast.success(
+                'Repay success',
+                `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+              );
+            } else {
+              await refreshPositions();
+              refetchNfts({});
+
+              toast.success(
+                'Repay success',
+                `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+              );
+            }
+          } else {
+            return toast.error('Repay failed');
+          }
         }
-      } else {
-        return toast.error('Repay failed');
-      }
+      });
     } catch (error) {
       return toast.error('An error occurred');
     }
