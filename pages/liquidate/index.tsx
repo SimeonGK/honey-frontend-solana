@@ -46,7 +46,8 @@ import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import {
   HONEY_PROGRAM_ID,
   HONEY_GENESIS_MARKET_ID,
-  COLLATERAL_FACTOR
+  COLLATERAL_FACTOR,
+  marketIDs
 } from '../../helpers/marketHelpers/index';
 import { NATIVE_MINT } from '@solana/spl-token-v-0.1.8';
 import HoneySider from 'components/HoneySider/HoneySider';
@@ -65,7 +66,89 @@ import { renderMarket, renderMarketImageByName } from 'helpers/marketHelpers';
 import { network } from 'pages/_app';
 
 const { formatPercent: fp, formatSol: fs, formatRoundDown: fd } = formatNumber;
-const Liquidate: NextPage = () => {
+
+const createMarketObject = async (marketData: any) => {
+  try {
+    return Promise.all(
+      marketData.map(async (marketObject: any) => {
+        const marketId = marketObject.market.address.toString();
+        const { utilization, interestRate } =
+          await marketObject.reserves[0].getUtilizationAndInterestRate();
+        const totalMarketDebt =
+          await marketObject.reserves[0].getReserveState();
+        const totalMarketDeposits =
+          await marketObject.reserves[0].getReserveState().totalDeposits;
+        const nftPrice = await marketObject.market.fetchNFTFloorPriceInReserve(
+          0
+        );
+        const allowanceAndDebt = await marketObject.user.fetchAllowanceAndDebt(
+          0,
+          'mainnet-beta'
+        );
+
+        const allowance = await allowanceAndDebt.allowance;
+        const liquidationThreshold =
+          await allowanceAndDebt.liquidationThreshold;
+        const ltv = await allowanceAndDebt.ltv;
+        const ratio = await allowanceAndDebt.ratio.toString();
+
+        const positions = marketObject.positions.map((pos: any) => {
+          return {
+            obligation: pos.obligation,
+            debt: pos.debt,
+            owner: pos.owner.toString(),
+            ltv: pos.ltv,
+            is_healthy: pos.is_healthy,
+            highest_bid: pos.highest_bid,
+            verifiedCreator: pos.verifiedCreator.toString()
+          };
+        });
+
+        console.log('@@-- market object ssr', marketObject.bids);
+
+        return {
+          marketId,
+          utilization: utilization,
+          interestRate: interestRate,
+          totalMarketDebt: totalMarketDebt,
+          totalMarketDeposits: totalMarketDeposits,
+          // totalMarketValue: totalMarketDebt + totalMarketDeposits,
+          nftPrice: nftPrice,
+          bids: marketObject.bids,
+          allowance,
+          liquidationThreshold,
+          ltv,
+          ratio,
+          positions
+        };
+      })
+    );
+  } catch (error) {
+    return {};
+  }
+};
+
+export async function getServerSideProps() {
+  const createConnection = () => {
+    // @ts-ignore
+    return new Connection(process.env.NEXT_PUBLIC_RPC_NODE, 'mainnet-beta');
+  };
+  const response = await fetchAllMarkets(
+    createConnection(),
+    null,
+    HONEY_PROGRAM_ID,
+    marketIDs,
+    false
+  );
+
+  return createMarketObject(response).then(res => {
+    return {
+      props: { res, revalidate: 30 }
+    };
+  });
+}
+// @ts-ignore
+const Liquidate: NextPage = ({ res }: { res: any }) => {
   // base state
   const [hasPosition, setHasPosition] = useState(false);
   const [highestBiddingAddress, setHighestBiddingAddress] = useState('');
@@ -128,36 +211,18 @@ const Liquidate: NextPage = () => {
     currentMarketId
   );
   //  ************* END HOOKS *************
-  //  ************* START FETCH MARKET DATA *************
-  async function fetchAllMarketData(marketIDs: string[]) {
-    const data = await fetchAllMarkets(
-      sdkConfig.saberHqConnection,
-      sdkConfig.sdkWallet,
-      sdkConfig.honeyId,
-      marketIDs,
-      false
-    );
-
-    setMarketData(data as unknown as MarketBundle[]);
-    handleBids();
-  }
-
-  useEffect(() => {
-    const marketIDs = marketCollections.map(market => market.id);
-    fetchAllMarketData(marketIDs);
-  }, []);
-
-  //  ************* END FETCH MARKET DATA *************
 
   //  ************* START HANDLE BIDS *************
   async function handleBids() {
     if (!marketData) return;
 
     const filteredMarketData = marketData.filter(
-      marketObject => marketObject.market.address.toString() === currentMarketId
+      // @ts-ignore
+      marketObject => marketObject.marketId === currentMarketId
     );
 
     if (filteredMarketData.length) {
+      console.log('@@-- filteredMarketdata', filteredMarketData);
       if (filteredMarketData[0].bids) {
         setBiddingArray(filteredMarketData[0].bids);
         handleBiddingState(filteredMarketData[0].bids);
@@ -262,6 +327,10 @@ const Liquidate: NextPage = () => {
     }
   }, [parsedReserves]);
   //  ************* END FETCH SOL PRICE *************
+
+  useEffect(() => {
+    setMarketData(res as unknown as MarketBundle[]);
+  }, [res]);
 
   /**
    * @description calls upon liquidator client for placebid | revokebid | increasebid
@@ -397,34 +466,21 @@ const Liquidate: NextPage = () => {
         return Promise.all(
           marketCollections.map(async collection => {
             if (collection.id == '') return collection;
-
             if (marketData.length) {
               collection.marketData = marketData.filter(
-                marketObject =>
-                  marketObject.market.address.toString() === collection.id
+                //@ts-ignore
+                marketObject => marketObject.marketId === collection.id
               );
-
-              const honeyUser: HoneyUser = collection.marketData[0].user;
-              const honeyMarket: HoneyMarket = collection.marketData[0].market;
-              const honeyClient: HoneyClient = collection.marketData[0].client;
-              const parsedReserves = collection.marketData[0].reserves[0].data;
-              const mData = collection.marketData[0].reserves[0];
 
               await populateMarketData(
                 'LIQUIDATIONS',
                 collection,
-                sdkConfig.saberHqConnection,
-                sdkConfig.sdkWallet,
                 currentMarketId,
-                true,
                 collection.marketData[0].positions,
                 true,
-                honeyClient,
-                honeyMarket,
-                honeyUser,
-                parsedReserves,
-                mData
+                honeyUser
               );
+              console.log('@@-- liq three', collection);
 
               if (currentMarketId === collection.id)
                 setNftPrice(RoundHalfDown(Number(collection.nftPrice)));

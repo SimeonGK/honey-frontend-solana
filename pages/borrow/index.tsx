@@ -345,11 +345,6 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 marketObject => marketObject.marketId === collection.id
               );
 
-              console.log(
-                '@@-- collection.marketData',
-                collection.marketData[0].positions
-              );
-
               await populateMarketData(
                 'BORROW',
                 collection,
