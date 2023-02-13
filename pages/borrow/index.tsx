@@ -155,6 +155,8 @@ const createMarketObject = async (marketData: any) => {
           ltv,
           ratio,
           positions
+          // TODO: cannot be passed in
+          // update: marketObject.reserves[0].getReserveState()
         };
       })
     );
@@ -178,7 +180,7 @@ export async function getServerSideProps() {
 
   return createMarketObject(response).then(res => {
     return {
-      props: { res, revalidate: 30 }
+      props: { res, revalidate: 10 }
     };
   });
 }
@@ -301,6 +303,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
   const [marketData, setMarketData] = useState<MarketBundle[]>([]);
 
   useEffect(() => {
+    console.log('@@-- res', res);
     setMarketData(res as unknown as MarketBundle[]);
   }, [res]);
 
@@ -334,12 +337,17 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       function getData() {
         return Promise.all(
           marketCollections.map(async collection => {
-            if (collection.id == '') return collection;
+            if (collection.id === '') return collection;
 
             if (marketData && marketData.length) {
               collection.marketData = marketData.filter(
                 // @ts-ignore
                 marketObject => marketObject.marketId === collection.id
+              );
+
+              console.log(
+                '@@-- collection.marketData',
+                collection.marketData[0].positions
               );
 
               await populateMarketData(
@@ -958,8 +966,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
 
           if (tx[0] == 'SUCCESS') {
             const confirmation = tx[1];
-            // await fetchedDataObject.reserves[0].refresh();
-            // await fetchedDataObject.user.refresh();
+
             await collection.user.reserves[0].refresh();
             await collection.user.refresh();
 

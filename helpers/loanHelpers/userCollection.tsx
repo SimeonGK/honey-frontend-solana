@@ -247,7 +247,7 @@ async function configureCollectionObjecet(
     case 'LIQUIDATIONS':
       collection.name;
       collection.allowance = allowance;
-      collection.userDebt = userDebt.toString();
+      collection.userDebt = userDebt;
       collection.available = totalMarketDeposits;
       collection.value = totalMarketValue;
       collection.user = honeyUser;
@@ -287,7 +287,7 @@ async function configureCollectionObjecet(
       return collection;
     case 'BORROW':
       collection.allowance = allowance;
-      collection.userDebt = userDebt.toString();
+      collection.userDebt = userDebt;
       collection.ltv = ltv.toString();
       collection.available = totalMarketDeposits;
       collection.value = totalMarketValue;
@@ -300,7 +300,7 @@ async function configureCollectionObjecet(
       return collection;
     case 'LEND':
       collection.allowance = allowance;
-      collection.userDebt = userDebt.toString();
+      collection.userDebt = userDebt;
       collection.ltv = ltv.toString();
       collection.available = totalMarketDeposits;
       collection.value = totalMarketValue;
@@ -341,14 +341,14 @@ async function handleFormatMarket(
     'mainnet-beta'
   );
 
-  console.log('@@-- allowance and debt', allowanceAndDebt.debt.toString());
+  console.log('@@-- allowance and debt', allowanceAndDebt.debt);
 
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
   const userTotalDeposits = await honeyUser.fetchUserDeposits(0);
 
   return await configureCollectionObjecet(origin, collection, {
     allowance: allowanceAndDebt.allowance,
-    userDebt: allowanceAndDebt.debt.toString(),
+    userDebt: allowanceAndDebt.debt,
     ltv: allowanceAndDebt.ltv.toString(),
     tvl,
     totalMarketDeposits,

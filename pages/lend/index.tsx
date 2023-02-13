@@ -262,11 +262,12 @@ const Lend: NextPage = ({ res }: { res: any }) => {
     if (!toast) return;
     try {
       if (!value) return toast.error('Deposit failed');
-      const tokenAmount = new BN(value * LAMPORTS_PER_SOL);
+
       toast.processing();
 
       marketCollections.map(async collection => {
         if (collection.id === currentMarketId) {
+          const tokenAmount = new BN(value * LAMPORTS_PER_SOL);
           const depositTokenMint = new PublicKey(
             'So11111111111111111111111111111111111111112'
           );
@@ -321,59 +322,51 @@ const Lend: NextPage = ({ res }: { res: any }) => {
     try {
       if (!value) return toast.error('Withdraw failed');
 
-      const tokenAmount = new BN(value * LAMPORTS_PER_SOL);
-      const depositTokenMint = new PublicKey(
-        'So11111111111111111111111111111111111111112'
-      );
-
       toast.processing();
-      const tx = await withdraw(
-        honeyUser,
-        tokenAmount,
-        depositTokenMint,
-        honeyReserves
-      );
 
-      if (tx[0] == 'SUCCESS') {
-        const confirmation = tx[1];
-        const confirmationHash = confirmation[0];
-
-        await waitForConfirmation(
-          sdkConfig.saberHqConnection,
-          confirmationHash
-        );
-
-        await fetchMarket();
-
-        if (fetchedDataObject) {
-          await fetchedDataObject.reserves[0].refresh();
-          await fetchedDataObject.user.refresh();
-
-          honeyReservesChange === 0
-            ? setHoneyReservesChange(1)
-            : setHoneyReservesChange(0);
-
-          if (walletPK) await fetchWalletBalance(walletPK);
-
-          toast.success(
-            'Deposit success',
-            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+      marketCollections.map(async collection => {
+        if (collection.id === currentMarketId) {
+          const tokenAmount = new BN(value * LAMPORTS_PER_SOL);
+          const depositTokenMint = new PublicKey(
+            'So11111111111111111111111111111111111111112'
           );
-        } else {
-          honeyReservesChange === 0
-            ? setHoneyReservesChange(1)
-            : setHoneyReservesChange(0);
 
-          if (walletPK) await fetchWalletBalance(walletPK);
-
-          toast.success(
-            'Deposit success',
-            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+          const tx = await withdraw(
+            honeyUser,
+            tokenAmount,
+            depositTokenMint,
+            honeyReserves
           );
+
+          if (tx[0] == 'SUCCESS') {
+            const confirmation = tx[1];
+            const confirmationHash = confirmation[0];
+
+            await waitForConfirmation(
+              sdkConfig.saberHqConnection,
+              confirmationHash
+            );
+
+            await fetchMarket();
+
+            await collection.user.reserves[0].refresh();
+            await collection.user.refresh();
+
+            honeyReservesChange === 0
+              ? setHoneyReservesChange(1)
+              : setHoneyReservesChange(0);
+
+            if (walletPK) await fetchWalletBalance(walletPK);
+
+            toast.success(
+              'Deposit success',
+              `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+            );
+          } else {
+            return toast.error('Withdraw failed ');
+          }
         }
-      } else {
-        return toast.error('Withdraw failed ');
-      }
+      });
     } catch (error) {
       return toast.error('Withdraw failed ');
     }
