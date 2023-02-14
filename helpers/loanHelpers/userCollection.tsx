@@ -61,7 +61,8 @@ import {
   renderMarketName,
   marketCollections,
   COLLATERAL_FACTOR,
-  HONEY_GENESIS_MARKET_ID
+  HONEY_GENESIS_MARKET_ID,
+  ROOT_CLIENT
 } from 'helpers/marketHelpers';
 import { toast } from 'react-toastify';
 
@@ -341,8 +342,6 @@ async function handleFormatMarket(
     'mainnet-beta'
   );
 
-  console.log('@@-- allowance and debt', allowanceAndDebt.debt);
-
   const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
   const userTotalDeposits = await honeyUser.fetchUserDeposits(0);
 
@@ -364,6 +363,54 @@ async function handleFormatMarket(
   });
 }
 
+async function handleFormatClient(
+  origin: string,
+  collection: MarketTableRow,
+  currentMarketId: string,
+  obligations: any
+) {
+  if (collection.marketData) {
+    const honeyUser = collection.marketData[0].user;
+    const honeyMarket = collection.marketData[0].market;
+    const honeyClient = collection.marketData[0].client;
+    const parsedReserves = collection.marketData[0].reserves[0].data;
+    const mData = collection.marketData[0].reserves[0];
+
+    const totalMarketDebt = mData.getReserveState().outstandingDebt;
+    const totalMarketDeposits = mData.getReserveState().totalDeposits;
+    const { utilization, interestRate } = mData.getUtilizationAndInterestRate();
+    const totalMarketValue = totalMarketDeposits + totalMarketDebt;
+    const nftPrice = await honeyMarket.fetchNFTFloorPriceInReserve(0);
+    const allowanceAndDebt = await honeyUser.fetchAllowanceAndDebt(
+      0,
+      'mainnet-beta'
+    );
+    // TODO: should integrate in SDK
+    const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
+    const userTotalDeposits = await honeyUser.fetchUserDeposits(0);
+    //@ts-ignore
+    collection.marketId = collection.id;
+
+    return await configureCollectionObjecet(origin, collection, {
+      allowance: allowanceAndDebt.allowance,
+      userDebt: allowanceAndDebt.debt,
+      ltv: allowanceAndDebt.ltv.toString(),
+      tvl,
+      totalMarketDeposits,
+      totalMarketValue,
+      honeyUser,
+      nftPrice,
+      obligations,
+      totalMarketDebt,
+      currentMarketId,
+      utilization,
+      interestRate,
+      userTotalDeposits
+    });
+  }
+  return collection;
+}
+
 /**
  * @description Being called for each collection in the array, calculates the collections values
  * @params collection | connection | wallet | market id | boolean (if request comes from liquidation page) | array of obligations
@@ -375,20 +422,24 @@ export async function populateMarketData(
   currentMarketId: string,
   obligations: any,
   hasMarketData: boolean,
+  dataRoot: string,
   honeyUser?: HoneyUser
 ) {
   // create dummy keypair if no wallet is connected to fetch values of the collections regardless of connected wallet
   // let dummyWallet = wallet ? wallet : new NodeWallet(new Keypair());
-
-  if (hasMarketData && honeyUser) {
-    return await handleFormatMarket(
-      origin,
-      collection,
-      currentMarketId,
-      obligations,
-      honeyUser
-    );
+  if (dataRoot === ROOT_CLIENT) {
+    handleFormatClient(origin, collection, currentMarketId, obligations);
   } else {
-    return collection;
+    if (hasMarketData && honeyUser) {
+      return await handleFormatMarket(
+        origin,
+        collection,
+        currentMarketId,
+        obligations,
+        honeyUser
+      );
+    } else {
+      return collection;
+    }
   }
 }

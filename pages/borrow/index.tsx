@@ -72,7 +72,9 @@ import {
   HONEY_PROGRAM_ID,
   marketCollections,
   marketIDs,
-  OpenPositions
+  OpenPositions,
+  ROOT_CLIENT,
+  ROOT_SSR
 } from '../../helpers/marketHelpers/index';
 import HoneyTooltip from '../../components/HoneyTooltip/HoneyTooltip';
 import {
@@ -201,14 +203,6 @@ const Markets: NextPage = ({ res }: { res: any }) => {
     BorrowSidebarMode.MARKET
   );
   /**
-   * @description sets the market ID based on market click
-   * @params Honey table record - contains all info about a table (aka market / collection)
-   * @returns sets the market ID which re-renders page state and fetches market specific data
-   */
-  async function handleMarketId(record: any) {
-    setCurrentMarketId(record.id);
-  }
-  /**
    * @description fetches market reserve info | parsed reserves | fetch market (func) from SDK
    * @params none
    * @returns market | market reserve information | parsed reserves |
@@ -300,12 +294,53 @@ const Markets: NextPage = ({ res }: { res: any }) => {
     }
   }, [parsedReserves]);
 
+  // SSR market data
   const [marketData, setMarketData] = useState<MarketBundle[]>([]);
 
   useEffect(() => {
-    console.log('@@-- res', res);
     setMarketData(res as unknown as MarketBundle[]);
   }, [res]);
+
+  // client side fetch data
+  const [clientMarketData, setClientMarketData] = useState<MarketBundle[]>();
+  // current active market based on client side fetch
+  const [activeMarket, setActiveMarket] = useState<MarketBundle[]>();
+  // fetch all markets based on market id array
+  async function fetchClientSideMarketData() {
+    const data = await fetchAllMarkets(
+      sdkConfig.saberHqConnection,
+      sdkConfig.sdkWallet,
+      HONEY_PROGRAM_ID,
+      marketIDs
+    );
+
+    // set the state
+    setClientMarketData(data as unknown as MarketBundle[]);
+    // // set active market
+    // data.filter(market => {
+    //   if (market.market.address.toString() === currentMarketId)
+    //     setActiveMarket([market]);
+    // });
+  }
+
+  useEffect(() => {
+    fetchClientSideMarketData();
+  }, []);
+
+  /**
+   * @description sets the market ID based on market click
+   * @params Honey table record - contains all info about a table (aka market / collection)
+   * @returns sets the market ID which re-renders page state and fetches market specific data
+   */
+  async function handleMarketId(record: any) {
+    setCurrentMarketId(record.id);
+    // set active market
+    const filteredClientMarketData = clientMarketData?.filter(
+      market => market.market.address.toString() === record.id
+    );
+
+    setActiveMarket(filteredClientMarketData);
+  }
 
   // if there are open positions for the user -> set the open positions
   useEffect(() => {
@@ -338,8 +373,38 @@ const Markets: NextPage = ({ res }: { res: any }) => {
         return Promise.all(
           marketCollections.map(async collection => {
             if (collection.id === '') return collection;
+            if (
+              activeMarket &&
+              collection.id === activeMarket[0].market.address.toString()
+            ) {
+              collection.marketData = activeMarket;
 
-            if (marketData && marketData.length) {
+              await populateMarketData(
+                'BORROW',
+                collection,
+                currentMarketId,
+                collection.marketData[0].positions,
+                true,
+                ROOT_CLIENT,
+                honeyUser
+              );
+
+              collection.openPositions = await handlePositions(
+                collection.verifiedCreator,
+                userOpenPositions
+              );
+              collection.connection = sdkConfig.saberHqConnection;
+
+              setActiveInterestRate(collection.rate);
+              // @ts-ignore
+              setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+              setUserAllowance(collection.allowance);
+              // @ts-ignore
+              setUserDebt(collection.userDebt);
+              setLoanToValue(Number(collection.ltv));
+
+              return collection;
+            } else if (!activeMarket && marketData && marketData.length) {
               collection.marketData = marketData.filter(
                 // @ts-ignore
                 marketObject => marketObject.marketId === collection.id
@@ -351,6 +416,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 currentMarketId,
                 collection.marketData[0].positions,
                 true,
+                ROOT_SSR,
                 honeyUser
               );
 
@@ -361,7 +427,6 @@ const Markets: NextPage = ({ res }: { res: any }) => {
               collection.connection = sdkConfig.saberHqConnection;
 
               if (currentMarketId === collection.id) {
-                console.log('@@-- collection', collection);
                 setActiveInterestRate(collection.rate);
                 // @ts-ignore
                 setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
@@ -383,7 +448,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
         setTableDataFiltered(result);
       });
     }
-  }, [reserveHoneyState, userOpenPositions, marketData, NFTs]);
+  }, [reserveHoneyState, userOpenPositions, marketData, NFTs, activeMarket]);
 
   const showMobileSidebar = () => {
     setShowMobileSidebar(true);
@@ -825,43 +890,43 @@ const Markets: NextPage = ({ res }: { res: any }) => {
     try {
       if (!mintID) return;
       toast.processing();
-      // TODO: set verified creator of active market along with currentMarketId
-      marketCollections.map(async collection => {
-        if (collection.id === currentMarketId) {
-          const metadata = await Metadata.findByMint(
-            collection.connection,
-            mintID
-          );
-          const tx = await depositNFT(
-            collection.connection,
-            honeyUser,
-            metadata.pubkey
-          );
-
-          if (tx[0] == 'SUCCESS') {
-            const confirmation = tx[1];
-            const confirmationHash = confirmation[0];
-
-            await waitForConfirmation(
-              sdkConfig.saberHqConnection,
-              confirmationHash
+      if (activeMarket) {
+        // TODO: set verified creator of active market along with currentMarketId
+        activeMarket.map(async collection => {
+          if (collection.market.address.toString() === currentMarketId) {
+            const metadata = await Metadata.findByMint(
+              collection.market.conn,
+              mintID
+            );
+            const tx = await depositNFT(
+              collection.market.conn,
+              honeyUser,
+              metadata.pubkey
             );
 
-            await collection.user.reserves[0].refresh();
-            await collection.user.refresh();
+            if (tx[0] == 'SUCCESS') {
+              const confirmation = tx[1];
+              const confirmationHash = confirmation[0];
 
-            await refreshPositions();
-            refetchNfts({});
+              await waitForConfirmation(
+                sdkConfig.saberHqConnection,
+                confirmationHash
+              );
 
-            toast.success(
-              'Deposit success',
-              `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-            );
+              await collection.user.reserves[0].refresh();
+              await collection.user.refresh();
+
+              await refreshPositions();
+              refetchNfts({});
+
+              toast.success(
+                'Deposit success',
+                `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+              );
+            }
           }
-        } else {
-          toast.error('Deposit failed');
-        }
-      });
+        });
+      }
     } catch (error) {
       return toast.error(
         'Error depositing NFT'
@@ -880,28 +945,28 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       if (!mintID) return toast.error('Please select NFT');
       toast.processing();
 
-      marketCollections.map(async collection => {
-        if (collection.id === currentMarketId) {
-          const metadata = await Metadata.findByMint(
-            sdkConfig.saberHqConnection,
-            mintID
-          );
-          const tx = await withdrawNFT(
-            sdkConfig.saberHqConnection,
-            honeyUser,
-            metadata.pubkey
-          );
-
-          if (tx[0] == 'SUCCESS') {
-            const confirmation = tx[1];
-            const confirmationHash = confirmation[0];
-
-            await waitForConfirmation(
+      if (activeMarket) {
+        activeMarket.map(async collection => {
+          if (collection.market.address.toString() === currentMarketId) {
+            const metadata = await Metadata.findByMint(
               sdkConfig.saberHqConnection,
-              confirmationHash
+              mintID
+            );
+            const tx = await withdrawNFT(
+              sdkConfig.saberHqConnection,
+              honeyUser,
+              metadata.pubkey
             );
 
-            if (collection.marketData) {
+            if (tx[0] == 'SUCCESS') {
+              const confirmation = tx[1];
+              const confirmationHash = confirmation[0];
+
+              await waitForConfirmation(
+                sdkConfig.saberHqConnection,
+                confirmationHash
+              );
+
               await collection.user.reserves[0].refresh();
               await collection.user.refresh();
 
@@ -913,23 +978,16 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
               );
             } else {
-              await refreshPositions();
-              refetchNfts({});
-
-              toast.success(
-                'Withdraw success',
+              toast.error(
+                'Error in withdraw',
                 `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
               );
             }
           } else {
-            toast.error(
-              'Error in withdraw',
-              `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-            );
+            return toast.error('With failed');
           }
-        }
-        return true;
-      });
+        });
+      }
     } catch (error) {
       toast.error('Error withdraw NFT');
       return;
@@ -950,38 +1008,40 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       );
 
       toast.processing();
-      marketCollections.map(async collection => {
-        if (collection.id === currentMarketId) {
-          const tx = await borrowAndRefresh(
-            honeyUser,
-            new BN(val * LAMPORTS_PER_SOL),
-            borrowTokenMint,
-            honeyReserves
-          );
-
-          if (tx[0] == 'SUCCESS') {
-            const confirmation = tx[1];
-
-            await collection.user.reserves[0].refresh();
-            await collection.user.refresh();
-
-            await refreshPositions();
-            refetchNfts({});
-
-            reserveHoneyState === 0
-              ? setReserveHoneyState(1)
-              : setReserveHoneyState(0);
-
-            toast.success(
-              'Borrow success',
-              `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+      if (activeMarket) {
+        activeMarket.map(async collection => {
+          if (collection.market.address.toString() === currentMarketId) {
+            const tx = await borrowAndRefresh(
+              collection.user,
+              new BN(val * LAMPORTS_PER_SOL),
+              borrowTokenMint,
+              collection.reserves
             );
-          } else {
-            console.log('@@-- tx error');
-            return toast.error('Borrow failed');
+
+            if (tx[0] == 'SUCCESS') {
+              const confirmation = tx[1];
+
+              await collection.user.reserves[0].refresh();
+              await collection.user.refresh();
+
+              await refreshPositions();
+              refetchNfts({});
+
+              reserveHoneyState === 0
+                ? setReserveHoneyState(1)
+                : setReserveHoneyState(0);
+
+              toast.success(
+                'Borrow success',
+                `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
+              );
+            } else {
+              console.log('@@-- tx error');
+              return toast.error('Borrow failed');
+            }
           }
-        }
-      });
+        });
+      }
     } catch (error) {
       return toast.error('An error occurred');
     }
@@ -1004,25 +1064,25 @@ const Markets: NextPage = ({ res }: { res: any }) => {
         'So11111111111111111111111111111111111111112'
       );
       toast.processing();
-      marketCollections.map(async collection => {
-        if (collection.id === currentMarketId) {
-          const tx = await repayAndRefresh(
-            honeyUser,
-            new BN(val * LAMPORTS_PER_SOL),
-            repayTokenMint,
-            honeyReserves
-          );
-
-          if (tx[0] == 'SUCCESS') {
-            const confirmation = tx[1];
-            const confirmationHash = confirmation[1];
-
-            await waitForConfirmation(
-              sdkConfig.saberHqConnection,
-              confirmationHash
+      if (activeMarket) {
+        activeMarket.map(async collection => {
+          if (collection.market.address.toString() === currentMarketId) {
+            const tx = await repayAndRefresh(
+              collection.user,
+              new BN(val * LAMPORTS_PER_SOL),
+              repayTokenMint,
+              collection.reserves
             );
 
-            if (collection.marketData) {
+            if (tx[0] == 'SUCCESS') {
+              const confirmation = tx[1];
+              const confirmationHash = confirmation[1];
+
+              await waitForConfirmation(
+                sdkConfig.saberHqConnection,
+                confirmationHash
+              );
+
               await collection.user.reserves[0].refresh();
               await collection.user.refresh();
 
@@ -1038,19 +1098,11 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
               );
             } else {
-              await refreshPositions();
-              refetchNfts({});
-
-              toast.success(
-                'Repay success',
-                `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-              );
+              return toast.error('Repay failed');
             }
-          } else {
-            return toast.error('Repay failed');
           }
-        }
-      });
+        });
+      }
     } catch (error) {
       return toast.error('An error occurred');
     }

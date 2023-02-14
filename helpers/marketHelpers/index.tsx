@@ -19,6 +19,9 @@ export type OpenPositions = {
   uri: string;
 };
 
+export const ROOT_SSR = 'ROOT_SSR';
+export const ROOT_CLIENT = 'ROOT_CLIENT';
+
 export const marketIDs = [
   '6FcJaAzQnuoA6o3sVw1GD6Ba69XuL5jinZpQTzJhd2R3',
   'Bw77MGpg189EaATjN67WXcnp3c4544LhKoV4Ftmdg4C',
