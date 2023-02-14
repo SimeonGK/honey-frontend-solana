@@ -104,8 +104,6 @@ const createMarketObject = async (marketData: any) => {
           };
         });
 
-        console.log('@@-- market object ssr', marketObject.bids);
-
         return {
           marketId,
           utilization: utilization,
@@ -222,7 +220,6 @@ const Liquidate: NextPage = ({ res }: { res: any }) => {
     );
 
     if (filteredMarketData.length) {
-      console.log('@@-- filteredMarketdata', filteredMarketData);
       if (filteredMarketData[0].bids) {
         setBiddingArray(filteredMarketData[0].bids);
         handleBiddingState(filteredMarketData[0].bids);
