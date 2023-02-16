@@ -246,7 +246,6 @@ const Markets: NextPage = ({ res }: { res: any }) => {
   const [loanToValue, setLoanToValue] = useState(0);
   const [userDebt, setUserDebt] = useState(0);
   const [cRatio, setCRatio] = useState(0);
-  const [reserveHoneyState, setReserveHoneyState] = useState(0);
   const [launchAreaWidth, setLaunchAreaWidth] = useState<number>(840);
   const [fetchedSolPrice, setFetchedSolPrice] = useState(0);
   const [activeInterestRate, setActiveInterestRate] = useState(0);
@@ -263,6 +262,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
     useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarVisible, setShowMobileSidebar] = useState(false);
+  const [initState, setInitState] = useState(false);
 
   /**
    * @description fetches all nfts in users wallet
@@ -321,6 +321,14 @@ const Markets: NextPage = ({ res }: { res: any }) => {
     //   if (market.market.address.toString() === currentMarketId)
     //     setActiveMarket([market]);
     // });
+
+    setTimeout(() => {
+      data.map(market => {
+        if (market.market.address.toString() === currentMarketId) {
+          setActiveMarket([market]);
+        }
+      });
+    }, 2500);
   }
 
   useEffect(() => {
@@ -373,6 +381,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
         return Promise.all(
           marketCollections.map(async collection => {
             if (collection.id === '') return collection;
+            // runs only for one market in the array - the active one
             if (
               activeMarket &&
               collection.id === activeMarket[0].market.address.toString()
@@ -386,7 +395,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 collection.marketData[0].positions,
                 true,
                 ROOT_CLIENT,
-                honeyUser
+                activeMarket[0].user
               );
 
               collection.openPositions = await handlePositions(
@@ -402,9 +411,49 @@ const Markets: NextPage = ({ res }: { res: any }) => {
               // @ts-ignore
               setUserDebt(collection.userDebt);
               setLoanToValue(Number(collection.ltv));
-
               return collection;
-            } else if (!activeMarket && marketData && marketData.length) {
+              // runs for all the markets in the array - you can only expand the market (to set active market)
+              // once data is loaded
+            } else if (
+              !activeMarket &&
+              clientMarketData &&
+              clientMarketData.length
+            ) {
+              collection.marketData = clientMarketData.filter(
+                marketObject =>
+                  marketObject.market.address.toString() === collection.id
+              );
+
+              await populateMarketData(
+                'BORROW',
+                collection,
+                currentMarketId,
+                collection.marketData[0].positions,
+                true,
+                ROOT_CLIENT,
+                collection.marketData[0].user
+              );
+
+              collection.openPositions = await handlePositions(
+                collection.verifiedCreator,
+                userOpenPositions
+              );
+              collection.connection = sdkConfig.saberHqConnection;
+
+              if (currentMarketId === collection.id) {
+                setActiveInterestRate(collection.rate);
+                // @ts-ignore
+                setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+                setUserAllowance(collection.allowance);
+                // @ts-ignore
+                setUserDebt(collection.userDebt);
+                setLoanToValue(Number(collection.ltv));
+                setFetchedDataObject(collection.marketData[0]);
+              }
+              return collection;
+            }
+            // runs for all the markets in the array
+            else if (!activeMarket && marketData && marketData.length) {
               collection.marketData = marketData.filter(
                 // @ts-ignore
                 marketObject => marketObject.marketId === collection.id
@@ -417,7 +466,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 collection.marketData[0].positions,
                 true,
                 ROOT_SSR,
-                honeyUser
+                collection.marketData[0].user
               );
 
               collection.openPositions = await handlePositions(
@@ -444,11 +493,12 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       }
 
       getData().then(result => {
+        console.log('@@-- func done');
         setTableData(result);
         setTableDataFiltered(result);
       });
     }
-  }, [reserveHoneyState, userOpenPositions, marketData, NFTs, activeMarket]);
+  }, [userOpenPositions, marketData, NFTs, activeMarket, clientMarketData]);
 
   const showMobileSidebar = () => {
     setShowMobileSidebar(true);
@@ -1020,6 +1070,12 @@ const Markets: NextPage = ({ res }: { res: any }) => {
 
             if (tx[0] == 'SUCCESS') {
               const confirmation = tx[1];
+              const confirmationHash = confirmation[0];
+
+              await waitForConfirmation(
+                sdkConfig.saberHqConnection,
+                confirmationHash
+              );
 
               await collection.user.reserves[0].refresh();
               await collection.user.refresh();
@@ -1027,9 +1083,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
               await refreshPositions();
               refetchNfts({});
 
-              reserveHoneyState === 0
-                ? setReserveHoneyState(1)
-                : setReserveHoneyState(0);
+              setActiveMarket(activeMarket);
 
               toast.success(
                 'Borrow success',
@@ -1089,9 +1143,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
               await refreshPositions();
               refetchNfts({});
 
-              reserveHoneyState === 0
-                ? setReserveHoneyState(1)
-                : setReserveHoneyState(0);
+              setActiveMarket(activeMarket);
 
               toast.success(
                 'Repay success',
@@ -1102,6 +1154,8 @@ const Markets: NextPage = ({ res }: { res: any }) => {
             }
           }
         });
+      } else {
+        toast.error('not running');
       }
     } catch (error) {
       return toast.error('An error occurred');

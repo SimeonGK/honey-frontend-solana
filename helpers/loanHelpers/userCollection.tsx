@@ -385,6 +385,8 @@ async function handleFormatClient(
       0,
       'mainnet-beta'
     );
+
+    console.log('@@-- allowance and debt client', allowanceAndDebt);
     // TODO: should integrate in SDK
     const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
     const userTotalDeposits = await honeyUser.fetchUserDeposits(0);
@@ -428,7 +430,12 @@ export async function populateMarketData(
   // create dummy keypair if no wallet is connected to fetch values of the collections regardless of connected wallet
   // let dummyWallet = wallet ? wallet : new NodeWallet(new Keypair());
   if (dataRoot === ROOT_CLIENT) {
-    handleFormatClient(origin, collection, currentMarketId, obligations);
+    return await handleFormatClient(
+      origin,
+      collection,
+      currentMarketId,
+      obligations
+    );
   } else {
     if (hasMarketData && honeyUser) {
       return await handleFormatMarket(

@@ -477,7 +477,6 @@ const Liquidate: NextPage = ({ res }: { res: any }) => {
                 true,
                 honeyUser
               );
-              console.log('@@-- liq three', collection);
 
               if (currentMarketId === collection.id)
                 setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
