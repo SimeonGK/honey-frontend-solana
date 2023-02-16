@@ -452,7 +452,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
               }
               return collection;
             }
-            // runs for all the markets in the array
+            // runs for all the markets in the array - root of data is server
             else if (!activeMarket && marketData && marketData.length) {
               collection.marketData = marketData.filter(
                 // @ts-ignore
@@ -465,8 +465,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 currentMarketId,
                 collection.marketData[0].positions,
                 true,
-                ROOT_SSR,
-                collection.marketData[0].user
+                ROOT_SSR
               );
 
               collection.openPositions = await handlePositions(
@@ -493,7 +492,6 @@ const Markets: NextPage = ({ res }: { res: any }) => {
       }
 
       getData().then(result => {
-        console.log('@@-- func done');
         setTableData(result);
         setTableDataFiltered(result);
       });
@@ -950,7 +948,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
             );
             const tx = await depositNFT(
               collection.market.conn,
-              honeyUser,
+              collection.user,
               metadata.pubkey
             );
 
@@ -976,6 +974,8 @@ const Markets: NextPage = ({ res }: { res: any }) => {
             }
           }
         });
+      } else {
+        return toast.error('Please select a market');
       }
     } catch (error) {
       return toast.error(
@@ -1004,7 +1004,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
             );
             const tx = await withdrawNFT(
               sdkConfig.saberHqConnection,
-              honeyUser,
+              collection.user,
               metadata.pubkey
             );
 
@@ -1037,6 +1037,8 @@ const Markets: NextPage = ({ res }: { res: any }) => {
             return toast.error('With failed');
           }
         });
+      } else {
+        return toast.error('Please select a market');
       }
     } catch (error) {
       toast.error('Error withdraw NFT');
@@ -1095,6 +1097,8 @@ const Markets: NextPage = ({ res }: { res: any }) => {
             }
           }
         });
+      } else {
+        return toast.error('Please select a market');
       }
     } catch (error) {
       return toast.error('An error occurred');
@@ -1155,7 +1159,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
           }
         });
       } else {
-        toast.error('not running');
+        toast.error('Please select a market');
       }
     } catch (error) {
       return toast.error('An error occurred');

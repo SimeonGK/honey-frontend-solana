@@ -375,7 +375,6 @@ async function handleFormatClient(
     const honeyClient = collection.marketData[0].client;
     const parsedReserves = collection.marketData[0].reserves[0].data;
     const mData = collection.marketData[0].reserves[0];
-
     const totalMarketDebt = mData.getReserveState().outstandingDebt;
     const totalMarketDeposits = mData.getReserveState().totalDeposits;
     const { utilization, interestRate } = mData.getUtilizationAndInterestRate();
@@ -386,7 +385,6 @@ async function handleFormatClient(
       'mainnet-beta'
     );
 
-    console.log('@@-- allowance and debt client', allowanceAndDebt);
     // TODO: should integrate in SDK
     const tvl = new BN(nftPrice * (await fetchTVL(obligations)));
     const userTotalDeposits = await honeyUser.fetchUserDeposits(0);

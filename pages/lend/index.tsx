@@ -51,7 +51,9 @@ import HoneyTableRow from 'components/HoneyTable/HoneyTableRow/HoneyTableRow';
 import {
   HONEY_GENESIS_BEE_MARKET_NAME,
   HONEY_PROGRAM_ID,
-  marketIDs
+  marketIDs,
+  ROOT_CLIENT,
+  ROOT_SSR
 } from '../../helpers/marketHelpers';
 import { HONEY_GENESIS_MARKET_ID } from '../../helpers/marketHelpers/index';
 import { marketCollections } from '../../helpers/marketHelpers';
@@ -173,10 +175,38 @@ const Lend: NextPage = ({ res }: { res: any }) => {
   let walletPK = sdkConfig.sdkWallet?.publicKey;
 
   const [marketData, setMarketData] = useState<MarketBundle[]>([]);
+  // current active market based on client side fetch
+  const [activeMarket, setActiveMarket] = useState<MarketBundle[]>();
+  const [clientMarketData, setClientMarketData] = useState<MarketBundle[]>();
 
   useEffect(() => {
     setMarketData(res as unknown as MarketBundle[]);
   }, [res]);
+
+  // fetch all markets based on market id (client side fetch)
+  async function fetchClientSideMarketData() {
+    const data = await fetchAllMarkets(
+      sdkConfig.saberHqConnection,
+      sdkConfig.sdkWallet,
+      HONEY_PROGRAM_ID,
+      marketIDs
+    );
+
+    // set the state
+    setClientMarketData(data as unknown as MarketBundle[]);
+
+    setTimeout(() => {
+      data.map(market => {
+        if (market.market.address.toString() === currentMarketId) {
+          setActiveMarket([market]);
+        }
+      });
+    }, 2500);
+  }
+
+  useEffect(() => {
+    fetchClientSideMarketData();
+  }, []);
 
   /**
    * @description sets the market ID based on market click
@@ -187,6 +217,12 @@ const Lend: NextPage = ({ res }: { res: any }) => {
     const marketData = renderMarket(record.id);
     setCurrentMarketId(marketData[0].id);
     setCurrentMarketName(marketData[0].name);
+
+    const filteredClientMarketdata = clientMarketData?.filter(
+      market => market.market.address.toString() === record.id
+    );
+
+    setActiveMarket(filteredClientMarketdata);
   }
 
   /**
@@ -203,19 +239,6 @@ const Lend: NextPage = ({ res }: { res: any }) => {
    * @returns market | market reserve information | parsed reserves |
    */
   const { marketReserveInfo, parsedReserves, fetchMarket } = useHoney();
-
-  /**
-   * @description calls upon the honey sdk
-   * @params  useConnection func. | useConnectedWallet func. | honeyID | marketID
-   * @returns honeyUser | honeyReserves - used for interaction regarding the SDK
-   */
-  const { honeyUser, honeyReserves, honeyMarket } = useMarket(
-    sdkConfig.saberHqConnection,
-    sdkConfig.sdkWallet,
-    sdkConfig.honeyId,
-    currentMarketId
-  );
-  // ************* END OF HOOKS *************
 
   //  ************* START FETCH USER BALANCE *************
   // fetches the users balance
@@ -264,50 +287,48 @@ const Lend: NextPage = ({ res }: { res: any }) => {
       if (!value) return toast.error('Deposit failed');
 
       toast.processing();
+      if (activeMarket) {
+        const tokenAmount = new BN(value * LAMPORTS_PER_SOL);
+        const depositTokenMint = new PublicKey(
+          'So11111111111111111111111111111111111111112'
+        );
 
-      marketCollections.map(async collection => {
-        if (collection.id === currentMarketId) {
-          const tokenAmount = new BN(value * LAMPORTS_PER_SOL);
-          const depositTokenMint = new PublicKey(
-            'So11111111111111111111111111111111111111112'
+        const tx = await deposit(
+          activeMarket[0].user,
+          tokenAmount,
+          depositTokenMint,
+          activeMarket[0].reserves
+        );
+
+        if (tx[0] == 'SUCCESS') {
+          const confirmation = tx[1];
+          const confirmationHash = confirmation[0];
+
+          await waitForConfirmation(
+            sdkConfig.saberHqConnection,
+            confirmationHash
           );
 
-          const tx = await deposit(
-            honeyUser,
-            tokenAmount,
-            depositTokenMint,
-            honeyReserves
+          await fetchMarket();
+
+          await activeMarket[0].reserves[0].refresh();
+          await activeMarket[0].user.refresh();
+
+          if (walletPK) await fetchWalletBalance(walletPK);
+          honeyReservesChange === 0
+            ? setHoneyReservesChange(1)
+            : setHoneyReservesChange(0);
+
+          toast.success(
+            'Deposit success',
+            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
           );
-
-          if (tx[0] == 'SUCCESS') {
-            const confirmation = tx[1];
-            const confirmationHash = confirmation[0];
-
-            await waitForConfirmation(
-              sdkConfig.saberHqConnection,
-              confirmationHash
-            );
-
-            await fetchMarket();
-
-            await collection.user.reserves[0].refresh();
-            await collection.user.refresh();
-
-            honeyReservesChange === 0
-              ? setHoneyReservesChange(1)
-              : setHoneyReservesChange(0);
-
-            if (walletPK) await fetchWalletBalance(walletPK);
-
-            toast.success(
-              'Deposit success',
-              `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-            );
-          } else {
-            return toast.error('Deposit failed');
-          }
+        } else {
+          return toast.error('Deposit failed');
         }
-      });
+      } else {
+        return toast.error('Please select a market');
+      }
     } catch (error) {
       return toast.error('Deposit failed', error);
     }
@@ -323,50 +344,49 @@ const Lend: NextPage = ({ res }: { res: any }) => {
       if (!value) return toast.error('Withdraw failed');
 
       toast.processing();
+      if (activeMarket) {
+        const tokenAmount = new BN(value * LAMPORTS_PER_SOL);
+        const depositTokenMint = new PublicKey(
+          'So11111111111111111111111111111111111111112'
+        );
 
-      marketCollections.map(async collection => {
-        if (collection.id === currentMarketId) {
-          const tokenAmount = new BN(value * LAMPORTS_PER_SOL);
-          const depositTokenMint = new PublicKey(
-            'So11111111111111111111111111111111111111112'
+        const tx = await withdraw(
+          activeMarket[0].user,
+          tokenAmount,
+          depositTokenMint,
+          activeMarket[0].reserves
+        );
+
+        if (tx[0] == 'SUCCESS') {
+          const confirmation = tx[1];
+          const confirmationHash = confirmation[0];
+
+          await waitForConfirmation(
+            sdkConfig.saberHqConnection,
+            confirmationHash
           );
 
-          const tx = await withdraw(
-            honeyUser,
-            tokenAmount,
-            depositTokenMint,
-            honeyReserves
+          await fetchMarket();
+
+          await activeMarket[0].reserves[0].refresh();
+          await activeMarket[0].user.refresh();
+
+          if (walletPK) await fetchWalletBalance(walletPK);
+
+          honeyReservesChange === 0
+            ? setHoneyReservesChange(1)
+            : setHoneyReservesChange(0);
+
+          toast.success(
+            'Deposit success',
+            `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
           );
-
-          if (tx[0] == 'SUCCESS') {
-            const confirmation = tx[1];
-            const confirmationHash = confirmation[0];
-
-            await waitForConfirmation(
-              sdkConfig.saberHqConnection,
-              confirmationHash
-            );
-
-            await fetchMarket();
-
-            await collection.user.reserves[0].refresh();
-            await collection.user.refresh();
-
-            honeyReservesChange === 0
-              ? setHoneyReservesChange(1)
-              : setHoneyReservesChange(0);
-
-            if (walletPK) await fetchWalletBalance(walletPK);
-
-            toast.success(
-              'Deposit success',
-              `https://solscan.io/tx/${tx[1][0]}?cluster=${network}`
-            );
-          } else {
-            return toast.error('Withdraw failed ');
-          }
+        } else {
+          return toast.error('Withdraw failed ');
         }
-      });
+      } else {
+        return toast.error('Please select a market');
+      }
     } catch (error) {
       return toast.error('Withdraw failed ');
     }
@@ -408,8 +428,71 @@ const Lend: NextPage = ({ res }: { res: any }) => {
         return Promise.all(
           marketCollections.map(async collection => {
             if (collection.id == '') return collection;
+            // runs only for one market in the array - the active one
+            if (
+              activeMarket &&
+              collection.id === activeMarket[0].market.address.toString()
+            ) {
+              collection.marketData = activeMarket;
+              await populateMarketData(
+                'LEND',
+                collection,
+                currentMarketId,
+                collection.marketData[0].positions,
+                true,
+                ROOT_CLIENT,
+                activeMarket[0].user
+              );
 
-            if (marketData.length) {
+              collection.stats = getPositionData();
+
+              setActiveInterestRate(collection.rate);
+              setActiveMarketSupplied(collection.value);
+              setActiveMarketAvailable(collection.available);
+              setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+              setFetchedDataObject(collection.marketData[0]);
+              collection.userTotalDeposits
+                ? setUserTotalDeposits(collection.userTotalDeposits)
+                : setUserTotalDeposits(0);
+
+              return collection;
+              // runs for all the markets in the array - you can only expand the market (to set active market)
+              // once data is loaded
+            } else if (
+              !activeMarket &&
+              clientMarketData &&
+              clientMarketData.length
+            ) {
+              collection.marketData = clientMarketData.filter(
+                marketObject =>
+                  marketObject.market.address.toString() === collection.id
+              );
+
+              await populateMarketData(
+                'LEND',
+                collection,
+                currentMarketId,
+                collection.marketData[0].positions,
+                true,
+                ROOT_CLIENT,
+                collection.marketData[0].user
+              );
+
+              collection.stats = getPositionData();
+
+              if (currentMarketId == collection.id) {
+                setActiveInterestRate(collection.rate);
+                setActiveMarketSupplied(collection.value);
+                setActiveMarketAvailable(collection.available);
+                setNftPrice(RoundHalfDown(Number(collection.nftPrice)));
+                setFetchedDataObject(collection.marketData[0]);
+                collection.userTotalDeposits
+                  ? setUserTotalDeposits(collection.userTotalDeposits)
+                  : setUserTotalDeposits(0);
+              }
+              return collection;
+              // runs for all the markets in the array - root of data is server
+            } else if (!activeMarket && marketData && marketData.length) {
               collection.marketData = marketData.filter(
                 //@ts-ignore
                 marketObject => marketObject.marketId === collection.id
@@ -421,9 +504,8 @@ const Lend: NextPage = ({ res }: { res: any }) => {
                 currentMarketId,
                 collection.marketData[0].positions,
                 true,
-                honeyUser
+                ROOT_SSR
               );
-
               collection.stats = getPositionData();
 
               if (currentMarketId == collection.id) {
@@ -449,11 +531,10 @@ const Lend: NextPage = ({ res }: { res: any }) => {
       });
     }
   }, [
-    // sdkConfig.saberHqConnection,
-    // sdkConfig.sdkWallet,
     marketData,
+    clientMarketData,
     userTotalDeposits,
-    // currentMarketId,
+    activeMarket,
     honeyReservesChange
   ]);
 
