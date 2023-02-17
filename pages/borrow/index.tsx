@@ -484,6 +484,7 @@ const Markets: NextPage = ({ res }: { res: any }) => {
                 setLoanToValue(Number(collection.ltv));
                 setFetchedDataObject(collection.marketData[0]);
               }
+              console.log('@@-- server collection', collection);
               return collection;
             }
             return collection;
